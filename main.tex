@@ -1,0 +1,37 @@
+\documentclass{book}
+\usepackage{rvalp}
+
+\input{preamble}
+\begin{document}
+
+    % Title Page
+    \maketitle
+
+    % Frontmatter
+    \frontmatter
+    \input{front/copyright}
+    \tableofcontents
+    \input{front/preface}
+
+    % Main Contents
+    \mainmatter
+    \input{contents/chapter01}
+    \input{contents/chapter02}
+    \input{contents/chapter03}
+    \input{contents/chapter04}
+    \input{contents/chapter05}
+
+    % Backmatter - Appendice
+    \appendix
+    \input{back/appendix01}
+    \input{back/appendix02}
+    \input{back/appendix03}
+    \input{back/appendix04}
+
+    % Backmatter - Bibliography & Glossary
+    \backmatter
+	\input{back/bibliography}
+	\input{back/glossary}
+	\input{back/index}
+
+\end{document}

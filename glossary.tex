@@ -1,0 +1,227 @@
+% Glossary Terms
+\newglossaryentry{latex}
+{
+    name=LaTeX,
+    description={Is a mark up language specially suited for scientific documents}
+}
+
+\newglossaryentry{binary}
+{
+	name=binary,
+	description={Something that has two parts or states.  In computing
+		these two states are represented by the numbers one and zero or
+		by the conditions true and false and can be stored in one \gls{bit}}
+}
+
+\newglossaryentry{hexadecimal}
+{
+	name=hexadecimal,
+	description={A base-16 numbering system whose digits are 0123456789abcdef.
+		The hex digits (\gls{hit}s) are not case-sensitive}
+}
+
+\newglossaryentry{bit}
+{
+	name=bit,
+	description={One binary digit}
+}
+
+\newglossaryentry{hit}
+{
+	name={hit},
+	description={One \gls{hexadecimal} digit}
+}
+
+\newglossaryentry{nybble}
+{
+	name={nybble},
+	description={Half of a {\em \gls{byte}} is a {\em nybble}
+		(sometimes spelled nibble.)  Another word for {\em \gls{hit}}}
+}
+
+\newglossaryentry{byte}
+{
+	name=byte,
+	description={A \gls{binary} value represented by 8 \gls{bit}s}
+}
+
+\newglossaryentry{halfword}
+{
+	name={halfword},
+	description={A \gls{binary} value represented by 16 \gls{bit}s}
+}
+
+\newglossaryentry{fullword}
+{
+	name={fullword},
+	description={A \gls{binary} value represented by 32 \gls{bit}s}
+}
+
+\newglossaryentry{doubleword}
+{
+	name={doubleword},
+	description={A \gls{binary} value represented by 64 \gls{bit}s}
+}
+
+\newglossaryentry{quadword}
+{
+	name={quadword},
+	description={A \gls{binary} value represented by 128 \gls{bit}s}
+}
+
+\newglossaryentry{HighOrderBits}
+{
+	name={high order bits},
+	description={Some number of \acrshort{msb}s}
+}
+
+\newglossaryentry{LowOrderBits}
+{
+    name={low order bits},
+    description={Some number of \acrshort{lsb}s}
+}
+
+\newglossaryentry{xlen}
+{
+	name=XLEN,
+	description={The number of bits a RISC-V x integer \gls{register}
+		(such as x0).  For RV32 XLEN=32, RV64 XLEN=64 and so on}
+}
+
+\newglossaryentry{rv32}
+{
+	name=RV32,
+	description={Short for RISC-V 32.  The number 32 refers to the \gls{xlen}}
+}
+
+\newglossaryentry{rv64}
+{
+	name=RV64,
+	description={Short for RISC-V 64.  The number 64 refers to the \gls{xlen}}
+}
+
+\newglossaryentry{overflow}
+{
+	name=overflow,
+	description={The situation where the result of an addition or
+		subtraction operation is approaching positive or negative
+		infinity and exceeds the number of bits allotted to contain
+		the result.  This is typically caused by high-order truncation}
+}
+
+\newglossaryentry{underflow}
+{
+	name=underflow,
+	description={The situation where the result of an addition or
+		subtraction operation is approaching zero and exceeds the number
+		of bits allotted to contain the result.  This is typically
+        caused by low-order truncation}
+}
+
+\newglossaryentry{MachineLanguage}
+{
+	name={machine language},
+	description={The instructions that are executed by a CPU that are expressed
+		in the form of \gls{binary} values}
+}
+
+\newglossaryentry{register}
+{
+	name={register},
+	description={A unit of storage inside a CPU with the capacity of \gls{xlen} \gls{bit}s}
+}
+
+\newglossaryentry{program}
+{
+	name={program},
+	description={A ordered list of one or more instructions}
+}
+
+\newglossaryentry{address}
+{
+	name={address},
+	description={A numeric value used to uniquely identify each \gls{byte} of main memory}
+}
+
+\newglossaryentry{alignment}
+{
+	name={alignment},
+	description={Refers to a range of numeric values that begin
+		at a multiple of some number.  Primarily used when referring to
+		a memory address.  For example an alignment of two refers to one
+		or more addresses starting at even address and continuing onto
+		subsequent adjacent, increasing memory addresses}
+}
+
+\newglossaryentry{exception}
+{
+	name={exception},
+	description={An error encountered by the CPU while executing an instruction
+		that can not be completed}
+}
+
+\newglossaryentry{bigendian}
+{
+	name={big-endian},
+	description={A number format where the most significant values are
+	printed to the left of the lesser significant values.  This is the
+	method that everyone uses to write decimal numbers every day}
+}
+
+\newglossaryentry{littleendian}
+{
+	name={little-endian},
+	description={A number format where the least significant values are
+		printed to the left of the more significant values.  This is the
+		opposite ordering that everyone learns in grade school when learning
+		how to count.  For example, the \gls{bigendian} number written as ``1234''
+		would be written in little endian form as ``4321''}
+}
+
+\newglossaryentry{rvddt}
+{
+	name={rvddt},
+	description={A RV32I simulator and debugging tool inspired by the
+		simplicity of the Dynamic Debugging Tool (ddt) that was part of
+		the CP/M operating system}
+}
+
+\newglossaryentry{mnemonic}
+{
+	name={mnemonic},
+	description={A method used to remember something.  In the case of
+		assembly language, each machine instruction is given a name
+		so the programmer need not memorize the binary values of each
+		machine instruction}
+}
+
+\newglossaryentry{thread}
+{
+	name={thread},
+	description={An stream of instructions.  When plural, it is
+		used to refer to the ability of a CPU to execute multiple
+		instruction streams at the same time}
+}
+
+\newglossaryentry{ascii}
+{
+	name={ASCII},
+	description={American Standard Code for Information Interchange.
+		See \autoref{chapter:ascii}}
+}
+
+\newglossaryentry{place-value}
+{
+	name={place value},
+	description={the numerical value that a digit has as a result of its {\em position} within a number.
+	For example, the digit 2 in the decimal number 123 is in the ten's place and its place value is 20}
+}
+
+% Acronym Terms
+\newacronym{cpu}{CPU}{Central Processing Unit}
+\newacronym{hart}{hart}{Hardware Thread}
+\newacronym{isa}{ISA}{Instruction Set Architecture}
+\newacronym{lsb}{LSB}{Least Significant Bit}
+\newacronym{msb}{MSB}{Most Significant Bit}
+\newacronym{ram}{RAM}{Random Access Memory}
+\newacronym{rom}{ROM}{Read Only Memory}

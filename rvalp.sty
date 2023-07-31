@@ -1,0 +1,2236 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{rvalp}
+
+% -----
+% Page Size and Margins
+% --
+\usepackage{geometry}
+\geometry{
+  left           = 0.75in,  % left margin
+  top            = 1.25in,
+  bottom         = 0.75in,
+  textwidth      = 34pc,    % main text block
+  marginparsep   = 1pc,     % gutter between main text block and margin notes
+  marginparwidth = 8pc      % width of margin notes
+}
+
+% Paragraph Spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{.51em}
+
+% TOC Depths and Enumerating Depth of Sections
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{3}
+
+% packages
+\usepackage{ifthen}
+\usepackage{stringstrings}	% so can count characters in a string
+\usepackage{xstring}		% so can count characters in a string
+\usepackage{color}   % Necessary for colored links
+% load makeidx BEFORE hyperref to make the index clickable
+% load makeidx AFTER hyperref if want to use showidx
+\usepackage{makeidx}
+\usepackage[pagebackref]{hyperref}
+\hypersetup{
+    colorlinks=true,	%set true if you want colored links
+    linkcolor=blue		%choose some color if you want links to stand out
+}
+\usepackage{scrextend}		% so can use \footref
+
+\usepackage{lastpage}
+\usepackage{fancyhdr}
+
+\usepackage{amsmath}
+\numberwithin{equation}{section}
+\usepackage{amsfonts} % I hear these are also good to load
+\usepackage{amssymb} % I hear these are also good to load
+
+
+\usepackage{ed}
+\usepackage{glossaries}
+\glstoctrue
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{fancyvrb}
+\usepackage{caption}
+
+\usepackage{epsfig}
+\usepackage{tikz}
+\usepackage{tikz-timing}
+
+\usepackage{placeins}
+\usepackage{listings}
+
+% -------
+% Custom Colors
+% --
+
+% These are color styles used in the figures in this book.
+\definecolor{c_lightblue}{HTML}{B0E0FF}
+\definecolor{c_lightred}{HTML}{FFE0E0}
+\definecolor{c_lightyellow}{HTML}{FFE060}
+\definecolor{c_lightgreen}{HTML}{C0FFC0}
+
+% -------
+% Custom Typing Commands
+% --
+
+% print a register name in typewriter font
+\providecommand{\reg}[1]{\texttt{#1}}
+\providecommand{\rvddt}{\texttt{rvddt}}
+
+% print an instruction name in typewriter font
+\providecommand{\insn}[1]{\texttt{#1}}
+\providecommand{\hex}[1]{\texttt{0x#1}}
+
+% -------
+% Custom Listing Commands
+% --
+
+% Listing Fonts
+%\newcommand{\theListingFontFamily}{\ttfamily\small}
+\newcommand{\theListingFontFamily}{\ttfamily\footnotesize}
+%\newcommand{\theListingFontFamily}{\ttfamily\scriptsize}
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [1] = place for additional listing parameters, default: language=C
+% [2] = filepath
+% [3] = Description of the listing
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\listing}[3][language=C]{%
+	\lstinputlisting[ %
+		numbers=left,numberstyle=\tiny,stepnumber=1,numbersep=8pt, %
+		breaklines=true, %
+		frame=single %
+		showtabs=false, %
+		basicstyle=\theListingFontFamily, %
+		showstringspaces=false, %
+		tabsize=4, %
+		showlines=true, %  show all blank lines
+		#1, %
+		captionpos=t,frame=tblr,label={lst:\detokenize{#2}},caption={{\tt \detokenize{#2}}\\\hspace{\textwidth}{\small #3}}]{\detokenize{#2}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\listingRef}[1]{\autoref{lst:\detokenize{#1}}}
+
+% Listing Environments: tty
+\lstnewenvironment{tty}
+	{\lstset{language=sh, %
+		numbers=left,numberstyle=\tiny,stepnumber=1,numbersep=8pt, %
+		breaklines=true, %
+		frame=single, %
+		showtabs=false, %
+		basicstyle=\theListingFontFamily, %
+		showstringspaces=false, %
+		tabsize=4, %
+		showlines=true, %  show all blank lines
+		basicstyle=\theListingFontFamily
+    }
+  }
+	{}
+
+% -------
+% Custom Drawing Commands
+% --
+
+\def\SignBoxCornerRadius{.75mm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\BeginTikzPicture{
+    %\begin{tikzpicture}[x=.4cm,y=.3cm]
+    \begin{tikzpicture}[x=.35cm,y=.3cm]
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\EndTikzPicture{
+    \end{tikzpicture}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Print the characters within a string evenly spaced at integral node positions
+%
+% #1 The number of characters in the string
+% #2 The string to print
+\newcommand\DrawBitstring[2]{
+\foreach \x in {1,...,#1}%
+	\draw(\x,0) node{\substring{#2}{\x}{\x}};%
+%	\draw(\x,.5) node[text width = 10, text height = 1]{\substring{#2}{\x}{\x}};%	Improve vertical text alignment
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 The total size
+% #2 The string to print
+% #3 The value to use when extending to left
+\newcommand\DrawLeftExtendedBitstring[3]{
+	\StrLen{#2}[\numchars]
+
+	\pgfmathsetmacro\leftpadd{int(#1-\numchars)}
+	\foreach \x in {1,...,\leftpadd}
+    	\draw(\x,0) node{#3};
+
+	\pgfmathsetmacro\leftpadd{int(\leftpadd+1)}
+	\foreach \x in {\leftpadd,...,#1}
+		\pgfmathsetmacro\ix{int(\x-\leftpadd+1)}
+		\draw(\x,0) node{\substring{#2}{\ix}{\ix}};
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% If the string is shorter than expected, extend with #5 to the right.
+%
+% #1 The total size
+% #2 Num chars to extend on the right
+% #3 The string to print
+% #4 The value to use when extending to left
+% #5 The value to use when extending to right
+\newcommand\DrawDoubleExtendedBitstring[5]{
+	\StrLen{#3}[\numchars]
+
+	\pgfmathsetmacro\leftpadd{int(#1-#2-\numchars)}
+	\ifthenelse{1 > \leftpadd}
+	{}
+	{
+		\foreach \x in {1,...,\leftpadd}
+    		\draw(\x,0) node{#4};
+	}
+
+	\pgfmathsetmacro\leftpadd{int(\leftpadd+1)}
+	\pgfmathsetmacro\rightpadd{int(\leftpadd+\numchars)}
+	\foreach \x in {\leftpadd,...,\rightpadd}
+		\pgfmathsetmacro\ix{int(\x-\leftpadd+1)}
+		\draw(\x,0) node{\substring{#3}{\ix}{\ix}};
+
+
+	%\pgfmathsetmacro\rightpadd{int(\rightpadd+1)}
+	\ifthenelse{\rightpadd > #1}
+	{}
+	{
+		\foreach \x in {\rightpadd,...,#1}
+			\draw(\x,0) node{#5};
+	}
+}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a box suitable to show the given number of bits in a
+% labeled box suitable for showing expanded binary numbers.
+%
+% #1 The number of characters to display
+\newcommand\DrawBitBox[1]{
+    \draw (.5,-.75) -- (#1+.5,-.75);		% box bottom
+    \draw (.5,.75) -- (#1+.5,.75);			% box top
+    \draw (.5,-.75) -- (.5, 1.5);			% left end
+    \draw (#1+.5,-.75) -- (#1+.5, 1.5);		% right end
+    \pgfmathsetmacro\result{int(#1-1)}		% calc high bit
+    \node at (1,1.2) {\tiny\result};		% high bit label
+    \draw(#1,1.2) node{\tiny0};				% low bit label
+
+    \pgfmathsetmacro\result{#1/2}
+    \node at (\result,-1.2) {\tiny#1};		% size below the box
+
+    \pgfmathsetmacro\result{#1/2}
+    \draw[->] (\result+.6,-1.2) -- (#1+.5,-1.2);
+    \draw[->] (\result-.6,-1.2) -- (.5,-1.2);
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\DrawBitBoxUnsigned[1]{
+	\StrLen{#1}[\numchars]
+	\DrawBitBox{\numchars}
+	\DrawBitstring{\numchars}{#1}		% show the bits
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\DrawBitBoxUnsignedPicture[1]{
+	\BeginTikzPicture
+	\DrawBitBoxUnsigned{#1}
+	\EndTikzPicture
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\DrawBitBoxSignedPicture[1]{
+    \BeginTikzPicture
+    \DrawBitBoxUnsigned{#1}
+	% draw a box around the sign bit
+	\draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};
+    \EndTikzPicture
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 The total (extended) size
+% #2 The value to use for left-side padding
+% #3 The string to extend
+\newcommand\DrawBitBoxLeftExtended[3]{
+	\StrLen{#3}[\numchars]
+	\pgfmathsetmacro\fill{int(#1-\numchars)}
+	\begin{scope}[shift={(\fill,3.5)}]
+    \DrawBitBoxUnsigned{#3}
+
+   	% XXX IFF not zero-extending then draw a box around the sign bit
+   	\draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};
+	\end{scope}
+
+	\DrawBitBox{#1}
+	\DrawDoubleExtendedBitstring{#1}{0}{#3}{#2}{x}
+
+   	% XXX IFF not zero-extending then draw a box around the sign bit
+   	\draw {[rounded corners=\SignBoxCornerRadius] (\fill+1.35, -.6) -- (\fill+1.35, .6) -- (\fill+.65, .6) -- (\fill+.65, -.6) -- cycle};
+    % draw a box around the extended sign bits
+    \draw (.65, -.6) -- (.65, .6) -- (\fill+.35, .6) -- (\fill+.35, -.6) -- cycle;
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\DrawBitBoxSignExtendedPicture[2]{
+	\BeginTikzPicture
+	\DrawBitBoxLeftExtended{#1}{\substring{#2}{1}{1}}{#2}
+    \EndTikzPicture
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\DrawBitBoxZeroExtendedPicture[2]{
+	\BeginTikzPicture
+	\DrawBitBoxLeftExtended{#1}{0}{#2}
+    \EndTikzPicture
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 Total bit length
+% #2 The string to print
+% #3 Right-side padding length
+\newcommand\DrawBitBoxSignLeftZeroRightExtendedPicture[3]{
+	\BeginTikzPicture
+
+	\StrLen{#2}[\numchars]
+	\pgfmathsetmacro\fill{int(#1-\numchars-#3)}
+	\begin{scope}[shift={(\fill,3.5)}]
+    \DrawBitBoxUnsigned{#2}
+    % draw a box around the sign bit
+    %\draw (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle;
+    \draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};
+	\end{scope}
+
+	\DrawBitBox{#1}
+	\DrawDoubleExtendedBitstring{#1}{#3}{#2}{\substring{#2}{1}{1}}{0}
+
+	% Box the sign bit
+    \draw {[rounded corners=\SignBoxCornerRadius] (\fill+1.35, -.6) -- (\fill+1.35, .6) -- (\fill+.65, .6) -- (\fill+.65, -.6) -- cycle};
+
+	\ifthenelse{\fill > 0}
+	{
+    	% Box the left-extended sign bits
+    	\draw (.65, -.6) -- (.65, .6) -- (\fill+.35, .6) -- (\fill+.35, -.6) -- cycle;
+		% \fill[blue!40!white] (.65, -.6) rectangle (\fill-.25, 1.2);
+	}
+	{}
+	\ifthenelse{#3 > 0}
+	{
+    	% Box the right-extended sign bits
+		\pgfmathsetmacro\posn{int(\numchars+\fill)}
+    	\draw (\posn+.65, -.6) -- (\posn+.65, .6) -- (\posn+#3+.35, .6) -- (\posn+#3+.35, -.6) -- cycle;
+	}
+	{}
+
+
+    \EndTikzPicture
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Draw hex markers
+% #1 The number of bits in the box
+\newcommand\DrawHexMarkers[1]{
+	\pgfmathsetmacro\num{int(#1-1)}
+	\foreach \x in {4,8,...,\num}
+		\draw [line width=.5mm] (\x+.5,-.75) -- (\x+.5, -.3);
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Print the characters within a string evenly spaced at integral node positions
+%
+% #1 The number of characters in the string
+% #2 The string of characters to plot
+% #3 Right-side label
+\newcommand\DrawInsnBitstring[3]{
+	\pgfmathsetmacro\num{int(#1-1)}
+	\foreach \x in {1,2,...,#1}
+    	\draw(\x+.25,-.3) node[text width = 10, text height = 1]{\substring{#2}{\x}{\x}};
+	\draw(#1+1,0) node[right]{#3};
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a bit-separator line with labels at the given bit-offset (from the right)
+%
+% #1 Total box width
+% #2 The position that the separator will be drawn to the left.
+\newcommand\DrawInsnBoxSep[2]{
+	\draw (#1-#2-.5,-.75) -- (#1-#2-.5, 1.5);
+	\node at (#1-#2,1.2) {\tiny#2};
+	\pgfmathsetmacro\result{int(#2+1)}
+	\node at (#1-#2-1,1.2) {\tiny\result};
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 total characters/width
+% #2 MSB position
+% #3 LSB position
+% #4 the segment label
+\newcommand\DrawInsnBoxSeg[4]{
+	\pgfmathsetmacro\leftpos{int(#1-#2)}
+	\pgfmathsetmacro\rightpos{int(#1-#3)}
+
+	\draw (\leftpos-.5,-.75) -- (\rightpos+.5,-.75);	% box bottom
+	\draw (\leftpos-.5,1.75) -- (\rightpos+.5,1.75);	% box top
+	\draw (\leftpos-.5,-.75) -- (\leftpos-.5, 2.5);		% left end
+	\draw (\rightpos+.5,-.75) -- (\rightpos+.5, 2.5);	% right end
+	\node at (\leftpos,2.2) {\tiny#2};
+	\draw(\rightpos,2.2) node{\tiny#3};
+
+	\pgfmathsetmacro\posn{#1-#2+(#2-#3)/2}
+	\pgfmathsetmacro\range{int(#2-#3+1)}
+	\node at (\posn,1.2) {\small#4};			% the field label
+
+%	\node at (\posn,-1.4) {\small\range};		% the field width
+	\begin{scope}[shift={(0,-.7)}]\InsnBoxFieldWidthArrow{#2}{#3}\end{scope}
+
+%	% arrows showing the span of the bits... meh
+%    \draw[->] (\posn+.5,-1.4) -- (\rightpos+.2,-1.4);
+%    \draw[->] (\posn-.5,-1.4) -- (\leftpos-.2,-1.4);
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\InsnStatement[1]{
+%	\textbf{\large #1}\\
+%	\textbf{#1}\\
+	{\large #1}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\DrawInsnTypeB[1]{
+	\StrLen{#1}[\numchars]
+	\begin{scope}[shift={(0,.75)}]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:btype]{B-type}}
+	\DrawInsnBoxSeg{\numchars}{31}{25}{imm[12\textbar10:5]}
+	\DrawInsnBoxSeg{\numchars}{24}{20}{rs2}
+	\DrawInsnBoxSeg{\numchars}{19}{15}{rs1}
+	\DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{imm[4:1\textbar11]}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+	% add some hint bits in for imm fields
+	\draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};	% sign bit
+	\draw (32-7-.5, -.75) -- (32-7-.5, .1);		% imm[11]
+	\draw (32-30-.5, -.75) -- (32-30.5, .1);	% imm[12]
+
+	\end{scope}
+
+	\DrawHexMarkersRel{\numchars}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeBTikz[1]{
+	\BeginTikzPicture
+	\DrawInsnTypeB{#1}
+	\EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeBPicture[2]{
+	\InsnStatement{#1}\\
+	\DrawInsnTypeBTikz{#2}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeU[1]{
+	\StrLen{#1}[\numchars]
+	\begin{scope}[shift={(0,.75)}]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:utype]{U-type}}
+	\DrawInsnBoxSeg{\numchars}{31}{12}{imm[31:12]}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{rd}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+	% add some hint bits in for imm fields
+	\draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};	% sign bit
+	\end{scope}
+
+	\DrawHexMarkersRel{\numchars}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeUTikz[1]{
+	\BeginTikzPicture
+	\DrawInsnTypeU{#1}
+	\EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeUPicture[2]{
+	\InsnStatement{#1}\\
+	\DrawInsnTypeUTikz{#2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeJ[1]{
+	\StrLen{#1}[\numchars]
+	\begin{scope}[shift={(0,.75)}]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:jtype]{J-type}}
+
+	\DrawInsnBoxSeg{\numchars}{31}{12}{imm[20\textbar10:1\textbar11\textbar19:12]}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{rd}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+%	\DrawHexMarkers{\numchars}
+	\end{scope}
+
+	% add some hint bits in for imm fields
+	\draw {[rounded corners=\SignBoxCornerRadius] (1.35, .15) -- (1.35, 1.35) -- (.65, 1.35) -- (.65, .15) -- cycle};	% sign bit
+	\draw (32-19-.5, 0) -- (32-19.5, .85);		% imm[19:12]
+	\draw (32-20-.5, 0) -- (32-20.5, .85);		% imm[11]
+	\draw (32-30-.5, 0) -- (32-30.5, .85);		% imm[1:10]
+	\DrawHexMarkersRel{\numchars}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeJTikz[1]{
+	\BeginTikzPicture
+	\DrawInsnTypeJ{#1}
+%	\StrLen{#1}[\numchars]
+%	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:jtype]{J-type}}
+%	\DrawInsnBoxSeg{\numchars}{31}{12}{imm[20\textbar10:1\textbar11\textbar19:12]}
+%	\DrawInsnBoxSeg{\numchars}{11}{7}{rd}
+%	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+%
+%	% add some hint bits in for imm fields
+%	\draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};	% sign bit
+%	\draw (32-19-.5, -.75) -- (32-19.5, .1);		% imm[19:12]
+%	\draw (32-20-.5, -.75) -- (32-20.5, .1);		% imm[11]
+%	\DrawHexMarkers{\numchars}
+
+	\EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeJPicture[2]{
+	\InsnStatement{#1}\\
+	\DrawInsnTypeJTikz{#2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeI[1]{
+	\StrLen{#1}[\numchars]
+	\begin{scope}[shift={(0,.75)}]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:itype]{I-type}}
+	\DrawInsnBoxSeg{\numchars}{31}{20}{imm[11:0]}
+	\DrawInsnBoxSeg{\numchars}{19}{15}{rs1}
+	\DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{rd}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+	% add some hint bits in for imm fields
+	\draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};	% sign bit
+	\end{scope}
+	\DrawHexMarkersRel{\numchars}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeITikz[1]{
+	\BeginTikzPicture
+	\DrawInsnTypeI{#1}
+%	\DrawHexMarkers{\numchars}
+	\EndTikzPicture
+}
+\newcommand\DrawInsnTypeIPicture[2]{
+	\InsnStatement{#1}\\
+	\DrawInsnTypeITikz{#2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeS[1]{
+	\StrLen{#1}[\numchars]
+	\begin{scope}[shift={(0,.75)}]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:stype]{S-type}}
+	\DrawInsnBoxSeg{\numchars}{31}{25}{imm[11:5]}
+	\DrawInsnBoxSeg{\numchars}{24}{20}{rs2}
+	\DrawInsnBoxSeg{\numchars}{19}{15}{rs1}
+	\DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{imm[4:0]}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+	% add some hint bits in for imm fields
+	\draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};	% sign bit
+	\end{scope}
+
+	\DrawHexMarkersRel{\numchars}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeSTikz[1]{
+	\BeginTikzPicture
+	\DrawInsnTypeS{#1}
+	\EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeSPicture[2]{
+	\InsnStatement{#1}\\
+	\DrawInsnTypeSTikz{#2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeIShiftTikz[1]{
+	\BeginTikzPicture
+	\StrLen{#1}[\numchars]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:rtype]{I-type}}
+	\DrawInsnBoxSeg{\numchars}{31}{25}{funct7}
+	\DrawInsnBoxSeg{\numchars}{24}{20}{shamt}
+	\DrawInsnBoxSeg{\numchars}{19}{15}{rs1}
+	\DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{rd}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+	\DrawHexMarkers{\numchars}
+	\EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeRShiftPicture[2]{
+	\InsnStatement{#1}\\
+	\DrawInsnTypeIShiftTikz{#2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeR[1]{
+	\StrLen{#1}[\numchars]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:rtype]{R-type}}
+	\DrawInsnBoxSeg{\numchars}{31}{25}{funct7}
+	\DrawInsnBoxSeg{\numchars}{24}{20}{rs2}
+	\DrawInsnBoxSeg{\numchars}{19}{15}{rs1}
+	\DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{rd}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+	\DrawHexMarkers{\numchars}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeRTikz[1]{
+	\BeginTikzPicture
+	\DrawInsnTypeR{#1}
+	\EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeRPicture[2]{
+	\InsnStatement{#1}\\
+	\DrawInsnTypeRTikz{#2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeFTikz[1]{
+    \BeginTikzPicture
+    \StrLen{#1}[\numchars]
+    \DrawInsnBitstring{\numchars}{#1}{FENCE}
+    \DrawInsnBoxSeg{\numchars}{31}{28}{}
+    \DrawInsnBoxSeg{\numchars}{27}{24}{pred}
+    \DrawInsnBoxSeg{\numchars}{23}{20}{succ}
+    \DrawInsnBoxSeg{\numchars}{19}{15}{}
+    \DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+    \DrawInsnBoxSeg{\numchars}{11}{7}{}
+    \DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+    \DrawHexMarkers{\numchars}
+    \EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeFPicture[2]{
+    \InsnStatement{#1}\\
+    \DrawInsnTypeFTikz{#2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeETikz[1]{
+    \BeginTikzPicture
+	\StrLen{#1}[\numchars]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:itype]{I-type}}
+	\DrawInsnBoxSeg{\numchars}{31}{20}{}
+	\DrawInsnBoxSeg{\numchars}{19}{15}{}
+	\DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+    \DrawHexMarkers{\numchars}
+    \EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeEPicture[2]{
+    \InsnStatement{#1}\\
+    \DrawInsnTypeETikz{#2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeCSTikz[1]{
+    \BeginTikzPicture
+	\StrLen{#1}[\numchars]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:itype]{I-type}}
+	\DrawInsnBoxSeg{\numchars}{31}{20}{csr}
+	\DrawInsnBoxSeg{\numchars}{19}{15}{rs1}
+	\DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{rd}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+    \DrawHexMarkers{\numchars}
+    \EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeCSPicture[2]{
+    \InsnStatement{#1}\\
+    \DrawInsnTypeCSTikz{#2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 the binary encoding
+\newcommand\DrawInsnTypeCSITikz[1]{
+    \BeginTikzPicture
+	\StrLen{#1}[\numchars]
+	\DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:itype]{I-type}}
+	\DrawInsnBoxSeg{\numchars}{31}{20}{csr}
+	\DrawInsnBoxSeg{\numchars}{19}{15}{zimm}
+	\DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+	\DrawInsnBoxSeg{\numchars}{11}{7}{rd}
+	\DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+
+    \DrawHexMarkers{\numchars}
+    \EndTikzPicture
+}
+
+\newcommand\DrawInsnTypeCSIPicture[2]{
+    \InsnStatement{#1}\\
+    \DrawInsnTypeCSITikz{#2}
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newcommand\xTInsnStatement[4]{%
+	\parbox{3.5cm}{{\sffamily\large\bfseries #2}\\
+	\tt#3}\hspace{5mm}\parbox{5cm}{\bfseries#1}\parbox{12cm}{#4}%
+}
+
+\newcommand\TInsnStatement[4]{%
+	\begin{tabular}{lll}
+	\parbox[t]{3.5cm}{{\sffamily\large\bfseries #2}\\
+	\tt#3} & \parbox[t]{5cm}{\bfseries #1} & \parbox[t]{12cm}{#4}\\
+	\end{tabular}
+}
+
+\newcommand\TDrawInsnTypeUPicture[5]{%
+	\TInsnStatement{#1}{#2}{#3}{#4}\\
+    \DrawInsnTypeUTikz{#5}%
+}
+
+\newcommand\TDrawInsnTypeJPicture[5]{%
+	\TInsnStatement{#1}{#2}{#3}{#4}\\
+    \DrawInsnTypeJTikz{#5}%
+}
+
+\newcommand\TDrawInsnTypeBPicture[5]{%
+	\TInsnStatement{#1}{#2}{#3}{#4}\\
+    \DrawInsnTypeBTikz{#5}%
+}
+
+\newcommand\TDrawInsnTypeIPicture[5]{%
+	\TInsnStatement{#1}{#2}{#3}{#4}\\
+    \DrawInsnTypeITikz{#5}%
+}
+\newcommand\TDrawInsnTypeSPicture[5]{%
+	\TInsnStatement{#1}{#2}{#3}{#4}\\
+    \DrawInsnTypeSTikz{#5}%
+}
+\newcommand\TDrawInsnTypeRPicture[5]{%
+	\TInsnStatement{#1}{#2}{#3}{#4}\\
+    \DrawInsnTypeRTikz{#5}%
+}
+
+\newcommand\TDrawInsnTypeRShiftPicture[5]{
+	\TInsnStatement{#1}{#2}{#3}{#4}\\
+	\DrawInsnTypeIShiftTikz{#5}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw hex markers with a baseline at zero
+% #1 The number of bits in the box
+\newcommand\TheHexMark[1]{
+	\draw [line width=.5mm] (#1+.5,0) -- (#1+.5, .4);
+}
+
+\newcommand\DrawHexMarkersRel[1]{
+	\pgfmathsetmacro\num{int(#1-1)}
+	\foreach \x in {4,8,...,\num}
+		\draw [line width=.5mm] (\x+.5,0) -- (\x+.5, .4);
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw an instruction box with a baseline at zero
+% #1 MSB position
+% #2 LSB position
+% #3 the segment label
+\newcommand\DrawInsnBoxRelTop[3]{
+	\pgfmathsetmacro\leftpos{int(32-#1)}
+	\pgfmathsetmacro\rightpos{int(32-#2)}
+	\draw (\leftpos-.5,1.5) -- (\rightpos+.5,1.5);	% box top
+	\draw (\leftpos-.5,0) -- (\leftpos-.5, 1.5);	% left end
+	\draw (\rightpos+.5,0) -- (\rightpos+.5, 1.5);	% right end
+	\pgfmathsetmacro\posn{32-#1+(#1-#2)/2}
+	\node at (\posn,.75) {\small#3};				% the field label
+}
+
+% Draw only the bottom line of an instruction box with a baseline at zero
+% #1 MSB position
+% #2 LSB position
+\newcommand\DrawInsnBoxRelBottom[2]{
+	\pgfmathsetmacro\leftpos{int(32-#1)}
+	\pgfmathsetmacro\rightpos{int(32-#2)}
+	\draw (\leftpos-.5,0) -- (\rightpos+.5,0);		% box bottom
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw an instruction box with a baseline at zero
+% #1 MSB position
+% #2 LSB position
+% #3 the segment label
+\newcommand\DrawInsnBoxRel[3]{
+	\DrawInsnBoxRelTop{#1}{#2}{#3}
+	\DrawInsnBoxRelBottom{#1}{#2}
+}
+
+%\newcommand\DrawInsnBoxRel[3]{
+%	\pgfmathsetmacro\leftpos{int(32-#1)}
+%	\pgfmathsetmacro\rightpos{int(32-#2)}
+%
+%	\draw (\leftpos-.5,0) -- (\rightpos+.5,0);	% box bottom
+%	\draw (\leftpos-.5,1.5) -- (\rightpos+.5,1.5);	% box top
+%	\draw (\leftpos-.5,0) -- (\leftpos-.5, 1.5);		% left end
+%	\draw (\rightpos+.5,0) -- (\rightpos+.5, 1.5);	% right end
+%
+%    \pgfmathsetmacro\posn{32-#1+(#1-#2)/2}
+%    \node at (\posn,.75) {\small#3};            % the field label
+%}
+
+% #1 MSB position
+% #2 LSB position
+\newcommand\DrawInsnBoxCastle[2]{
+	\pgfmathsetmacro\leftpos{int(32-#1)}
+	\pgfmathsetmacro\rightpos{int(32-#2)}
+	\draw (\leftpos-.5,0) -- (\leftpos-.5, .75);		% left end
+	\draw (\rightpos+.5,0) -- (\rightpos+.5, .75);	% right end
+	\node at (\leftpos,.5) {\tiny#1};
+	\ifthenelse{\equal{#1}{#2}}
+	{}
+	{ \draw(\rightpos,.5) node{\tiny#2}; }
+}
+\newcommand\DrawInsnBoxCastleRtype{
+	\DrawInsnBoxCastle{31}{25}
+	\DrawInsnBoxCastle{24}{20}
+	\DrawInsnBoxCastle{19}{15}
+	\DrawInsnBoxCastle{14}{12}
+	\DrawInsnBoxCastle{11}{7}
+	\DrawInsnBoxCastle{6}{0}
+}
+
+\newcommand\DrawInsnBoxCastleJtype{
+	\DrawInsnBoxCastle{31}{31}
+	\DrawInsnBoxCastle{30}{21}
+	\DrawInsnBoxCastle{20}{20}
+	\DrawInsnBoxCastle{19}{12}
+	\DrawInsnBoxCastle{11}{7}
+	\DrawInsnBoxCastle{6}{0}
+}
+
+
+
+%% Draw a B-Type instruction box
+%% #1 label
+%% #2 ...
+%\newcommand\DrawInsnBoxBType[6]{
+%	\DrawInsnBoxRel{31}{25}{#1}
+%	\DrawInsnBoxRel{24}{20}{#2}
+%	\DrawInsnBoxRel{19}{15}{#3}
+%	\DrawInsnBoxRel{14}{12}{#4}
+%	\DrawInsnBoxRel{11}{7}{#5}
+%	\DrawInsnBoxRel{6}{0}{#6}
+%}
+%
+%
+%\newcommand\DrawInsnBoxLabelsBtype{
+%	\DrawInsnBoxBType{imm[12\textbar10:5]}{rs2}{rs1}{funct3}{imm[4:1\textbar11]}{opcode}
+%%	\DrawInsnBoxRel{31}{25}{imm[12\textbar10:5]}
+%%	\DrawInsnBoxRel{24}{20}{rs2}
+%%	\DrawInsnBoxRel{19}{15}{rs1}
+%%	\DrawInsnBoxRel{14}{12}{funct3}
+%%	\DrawInsnBoxRel{11}{7}{imm[4:1\textbar11]}
+%%	\DrawInsnBoxRel{6}{0}{opcode}
+%	\draw(33,.75) node[right]{\hyperref[insnformat:btype]{B-type}};
+%}
+%\newcommand\DrawInsnBoxLabelsRtype{
+%	\DrawInsnBoxRel{31}{25}{funct7}
+%	\DrawInsnBoxRel{24}{20}{rs2}
+%	\DrawInsnBoxRel{19}{15}{rs1}
+%	\DrawInsnBoxRel{14}{12}{funct3}
+%	\DrawInsnBoxRel{11}{7}{rd}
+%	\DrawInsnBoxRel{6}{0}{opcode}
+%	\draw(33,.75) node[right]{\hyperref[insnformat:rtype]{R-type}};
+%}
+%\newcommand\DrawInsnBoxLabelsItype{
+%	\DrawInsnBoxRel{31}{20}{imm[11:0]}
+%	\DrawInsnBoxRel{19}{15}{rs1}
+%	\DrawInsnBoxRel{14}{12}{funct3}
+%	\DrawInsnBoxRel{11}{7}{rd}
+%	\DrawInsnBoxRel{6}{0}{opcode}
+%	\draw(33,.75) node[right]{\hyperref[insnformat:itype]{I-type}};
+%}
+%\newcommand\DrawInsnBoxLabelsStype{
+%    \DrawInsnBoxRel{31}{25}{imm[11:5]}
+%    \DrawInsnBoxRel{24}{20}{rs2}
+%    \DrawInsnBoxRel{19}{15}{rs1}
+%    \DrawInsnBoxRel{14}{12}{funct3}
+%    \DrawInsnBoxRel{11}{7}{imm[4:0]}
+%    \DrawInsnBoxRel{6}{0}{opcode}
+%	\draw(33,.75) node[right]{\hyperref[insnformat:stype]{S-type}};
+%}
+%\newcommand\DrawInsnBoxLabelsUtype{
+%	\DrawInsnBoxRel{31}{12}{imm[31:12]}
+%	\DrawInsnBoxRel{11}{7}{rd}
+%	\DrawInsnBoxRel{6}{0}{opcode}
+%	\draw(33,.75) node[right]{\hyperref[insnformat:utype]{U-type}};
+%}
+%\newcommand\DrawInsnBoxLabelsJtype{
+%	\DrawInsnBoxRel{31}{12}{imm[20\textbar10:1\textbar11\textbar19:12]}
+%	\DrawInsnBoxRel{11}{7}{rd}
+%	\DrawInsnBoxRel{6}{0}{opcode}
+%	\draw(33,.75) node[right]{\hyperref[insnformat:jtype]{J-type}};
+%}
+%
+%\newcommand\XXXDrawAllInsnTypes{
+%	\BeginTikzPicture
+%	\DrawInsnBoxLabelsRtype
+%	\begin{scope}[shift={(0,-1.5)}]\DrawInsnBoxLabelsItype\end{scope}
+%	\begin{scope}[shift={(0,-3)}]\DrawInsnBoxLabelsStype\end{scope}
+%	\begin{scope}[shift={(0,-4.5)}]\DrawInsnBoxLabelsBtype\end{scope}
+%	\begin{scope}[shift={(0,-6)}]\DrawInsnBoxLabelsUtype\end{scope}
+%	\begin{scope}[shift={(0,-7.5)}]\DrawInsnBoxLabelsJtype\DrawHexMarkersRel{32}\end{scope}
+%
+%	\begin{scope}[shift={(0,1.5)}]
+%		\DrawInsnBoxCastleRtype
+%	\end{scope}
+%
+%	\EndTikzPicture
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Print the characters within a string evenly spaced at integral node positions
+% #1 The string of characters to plot
+\newcommand\DrawBitstringX[1]{
+	\StrLen{#1}[\numchars]
+	\pgfmathsetmacro\num{int(\numchars-1)}
+	\foreach \x in {1,2,...,\numchars}
+%    	\draw(\x,0) node{\substring{\strut #1}{\x}{\x}};
+		\draw(\x+.25,.5) node[text width = 10, text height = 1]{\substring{#1}{\x}{\x}};
+}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% REFERENCE CARD DRAWINGS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\InsnSrcArgPosX{4}	% relative to the position of the mnemonic
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% draw the instruction mnemonic and its args
+% #1 mnemonic
+% #2 args
+\newcommand\DrawInsnSrc[2]{
+	\draw node[right]{\tt #1};
+	\draw(\InsnSrcArgPosX,0) node[right]{\tt #2};
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a I-type instruction box with the given labels
+\newcommand\DrawInsnOpIBox[5]{
+	\DrawInsnBoxRel{31}{20}{#1}
+	\DrawInsnBoxRel{19}{15}{#2}
+	\DrawInsnBoxRel{14}{12}{}
+	\DrawInsnBoxRel{11}{7}{#4}
+	\DrawInsnBoxRel{6}{0}{}
+
+	\begin{scope}[shift={(31-6,0)}]\DrawBitstringX{#3}\end{scope}
+	\begin{scope}[shift={(31-14,0)}]\DrawBitstringX{#5}\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a I-type instruction box with a 32-bit binary value
+\newcommand\DrawInsnOpIBinBox[1]{
+	\DrawInsnBoxRel{31}{20}{}
+	\DrawInsnBoxRel{19}{15}{}
+	\DrawInsnBoxRel{14}{12}{}
+	\DrawInsnBoxRel{11}{7}{}
+	\DrawInsnBoxRel{6}{0}{}
+
+	\begin{scope}[shift={(31-31,0)}]\DrawBitstringX{#1}\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a I-type w/funct7 instruction box with the given labels
+\newcommand\DrawInsnOpIFunctBox[6]{
+    \DrawInsnBoxRel{31}{25}{}
+    \DrawInsnBoxRel{24}{20}{#2}
+    \DrawInsnBoxRel{19}{15}{#3}
+    \DrawInsnBoxRel{14}{12}{}
+    \DrawInsnBoxRel{11}{7}{#5}
+    \DrawInsnBoxRel{6}{0}{}
+
+	\begin{scope}[shift={(31-6,0)}]\DrawBitstringX{#1}\end{scope}
+	\begin{scope}[shift={(31-14,0)}]\DrawBitstringX{#4}\end{scope}
+	\begin{scope}[shift={(31-31,0)}]\DrawBitstringX{#6}\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a I-type instruction box with the given labels
+\newcommand\DrawInsnOpBBox[6]{
+	\DrawInsnBoxRel{31}{25}{#1}
+	\DrawInsnBoxRel{24}{20}{#2}
+	\DrawInsnBoxRel{19}{15}{#3}
+	\DrawInsnBoxRel{14}{12}{}
+	\DrawInsnBoxRel{11}{7}{#5}
+	\DrawInsnBoxRel{6}{0}{}
+
+	\begin{scope}[shift={(31-6,0)}]\DrawBitstringX{#4}\end{scope}
+	\begin{scope}[shift={(31-14,0)}]\DrawBitstringX{#6}\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a S-type instruction box with the given labels
+\newcommand\DrawInsnOpSBox[6]{
+    \DrawInsnBoxRel{31}{25}{#1}
+    \DrawInsnBoxRel{24}{20}{#2}
+    \DrawInsnBoxRel{19}{15}{#3}
+    \DrawInsnBoxRel{14}{12}{}
+    \DrawInsnBoxRel{11}{7}{#5}
+    \DrawInsnBoxRel{6}{0}{}
+
+	\begin{scope}[shift={(31-6,0)}]\DrawBitstringX{#6}\end{scope}
+	\begin{scope}[shift={(31-14,0)}]\DrawBitstringX{#4}\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a R-type instruction box with the given labels
+\newcommand\DrawInsnOpRBox[6]{
+	\DrawInsnBoxRel{31}{25}{}
+	\DrawInsnBoxRel{24}{20}{#2}
+	\DrawInsnBoxRel{19}{15}{#3}
+	\DrawInsnBoxRel{14}{12}{}
+	\DrawInsnBoxRel{11}{7}{#5}
+	\DrawInsnBoxRel{6}{0}{}
+
+	\begin{scope}[shift={(31-6,0)}]\DrawBitstringX{#6}\end{scope}
+	\begin{scope}[shift={(31-14,0)}]\DrawBitstringX{#4}\end{scope}
+	\begin{scope}[shift={(31-31,0)}]\DrawBitstringX{#1}\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a U-type instruction box with the given labels
+\newcommand\DrawInsnOpUBox[3]{
+	\DrawInsnBoxRel{31}{12}{#1}
+	\DrawInsnBoxRel{11}{7}{#2}
+	\DrawInsnBoxRel{6}{0}{}
+
+	\begin{scope}[shift={(31-6,0)}]\DrawBitstringX{#3}\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw a J-type instruction box with the given labels
+\newcommand\DrawInsnOpJBox[3]{
+	\DrawInsnBoxRel{31}{12}{#1}
+	\DrawInsnBoxRel{11}{7}{#2}
+	\DrawInsnBoxRel{6}{0}{}
+
+	\begin{scope}[shift={(31-6,0)}]\DrawBitstringX{#3}\end{scope}
+}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\InsnBoxTypePosX{32.5}
+\newcommand\InsnBoxMnemonicPosX{36.5}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 func3
+% #3 mnemonic
+% #4 args
+\newcommand\DrawInsnOpBType[4]{
+	\DrawInsnOpBBox{imm[12\textbar10:5]}{rs2}{rs1}{#1}{imm[4:1\textbar11]}{#2}
+	\draw(\InsnBoxTypePosX,.75) node[right]{\hyperref[insnformat:btype]{B-type}};
+	\begin{scope}[shift={(\InsnBoxMnemonicPosX,.75)}]\DrawInsnSrc{#3}{#4}\end{scope}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 func3
+% #3 mnemonic
+% #4 args
+\newcommand\DrawInsnOpIType[4]{
+	\DrawInsnOpIBox{imm[11:0]}{rs1}{#1}{rd}{#2}
+	\draw(\InsnBoxTypePosX,.75) node[right]{\hyperref[insnformat:itype]{I-type}};
+	\begin{scope}[shift={(\InsnBoxMnemonicPosX,.75)}]\DrawInsnSrc{#3}{#4}\end{scope}
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 func3
+% #3 mnemonic
+% #4 args
+% #5 rs1/zimm
+\newcommand\DrawInsnOpITypeSystem[5]{
+	\DrawInsnOpIBox{csr[11:0]}{#5}{#1}{rd}{#2}
+	\draw(\InsnBoxTypePosX,.75) node[right]{\hyperref[insnformat:itype]{I-type}};
+	\begin{scope}[shift={(\InsnBoxMnemonicPosX,.75)}]\DrawInsnSrc{#3}{#4}\end{scope}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 func3
+% #3 func7
+% #4 mnemonic
+% #5 args
+\newcommand\DrawInsnOpITypeShift[5]{
+	\DrawInsnOpIFunctBox{#1}{shamt}{rs1}{#2}{rd}{#3}
+	\draw(\InsnBoxTypePosX,.75) node[right]{\hyperref[insnformat:itype]{I-type}};
+	\begin{scope}[shift={(\InsnBoxMnemonicPosX,.75)}]\DrawInsnSrc{#4}{#5}\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 func3
+% #3 mnemonic
+% #4 args
+\newcommand\DrawInsnOpSType[4]{
+	\DrawInsnOpSBox{imm[11:5]}{rs2}{rs1}{#2}{imm[4:0]}{#1}
+	\draw(\InsnBoxTypePosX,.75) node[right]{\hyperref[insnformat:stype]{S-type}};
+	\begin{scope}[shift={(\InsnBoxMnemonicPosX,.75)}]\DrawInsnSrc{#3}{#4}\end{scope}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 func3
+% #3 func7
+% #4 mnemonic
+% #5 args
+\newcommand\DrawInsnOpRType[5]{
+	\DrawInsnOpRBox{#3}{rs2}{rs1}{#2}{rd}{#1}
+	\draw(\InsnBoxTypePosX,.75) node[right]{\hyperref[insnformat:rtype]{R-type}};
+	\begin{scope}[shift={(\InsnBoxMnemonicPosX,.75)}]\DrawInsnSrc{#4}{#5}\end{scope}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 func3
+% #3 mnemonic
+% #4 args
+%\newcommand\DrawInsnOpFenceType[4]{
+%	\DrawInsnBoxRel{31}{28}{}
+%	\DrawInsnBoxRel{27}{24}{pred}
+%	\DrawInsnBoxRel{23}{20}{succ}
+%	\DrawInsnBoxRel{19}{15}{}
+%	\DrawInsnBoxRel{14}{12}{}
+%	\DrawInsnBoxRel{11}{7}{}
+%	\DrawInsnBoxRel{6}{0}{}
+%	\begin{scope}[shift={(\InsnBoxMnemonicPosX,.75)}]\DrawInsnSrc{#3}{#4}\end{scope}
+%
+%	\begin{scope}[shift={(31-6,0)}]\DrawBitstringX{#1}\end{scope}
+%	\begin{scope}[shift={(31-14,0)}]\DrawBitstringX{#2}\end{scope}
+%	\begin{scope}[shift={(31-31,0)}]\DrawBitstringX{0000}\end{scope}
+%
+%	\begin{scope}[shift={(31-19,0)}]\DrawBitstringX{00000}\end{scope}
+%	\begin{scope}[shift={(31-11,0)}]\DrawBitstringX{00000}\end{scope}
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 func12
+% #3 mnemonic
+% #4 args
+\newcommand\DrawInsnOpSysType[3]{
+	\DrawInsnOpIBinBox{#20000000000000#1}
+	\draw(\InsnBoxTypePosX,.75) node[right]{\hyperref[insnformat:itype]{I-type}};
+	\draw(\InsnBoxMnemonicPosX,.75) node[right]{\tt #3};
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 mnemonic
+% #4 args
+\newcommand\DrawInsnOpUType[3]{
+	\DrawInsnOpUBox{imm[31:12]}{rd}{#1}
+	\draw(\InsnBoxTypePosX,.75) node[right]{\hyperref[insnformat:utype]{U-type}};
+	\begin{scope}[shift={(\InsnBoxMnemonicPosX,.75)}]\DrawInsnSrc{#2}{#3}\end{scope}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #1 opcode
+% #2 mnemonic
+% #4 args
+\newcommand\DrawInsnOpJType[3]{
+	\DrawInsnOpJBox{imm[20\textbar10:1\textbar11\textbar19:12]}{rd}{#1}
+	\draw(\InsnBoxTypePosX,.75) node[right]{\hyperref[insnformat:jtype]{J-type}};
+	\begin{scope}[shift={(\InsnBoxMnemonicPosX,.75)}]\DrawInsnSrc{#2}{#3}\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\DrawAllInsnOpsU{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpUType{0110111}{\hyperref[insn:lui]{lui}}{rd,\hyperref[imm.u:decode]{imm}}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpUType{0010111}{\hyperref[insn:auipc]{auipc}}{rd,\hyperref[imm.u:decode]{imm}}\end{scope}
+%	\begin{scope}[shift={(0,-1.5)}]\DrawHexMarkersRel{32}\end{scope}
+}
+\newcommand\DrawAllInsnOpsJAL{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpJType{1101111}{\hyperref[insn:jal]{jal}}{rd,\hyperref[pcrel.21]{pcrel\_21}}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpIType{1100111}{000}{\hyperref[insn:jalr]{jalr}}{rd,\hyperref[imm.i:decode]{imm}(rs1)}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawHexMarkersRel{32}\end{scope}
+}
+\newcommand\DrawAllInsnOpsBranch{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpBType{1100011}{000}{\hyperref[insn:beq]{beq}}{rs1,rs2,\hyperref[pcrel.13]{pcrel\_13}}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpBType{1100011}{001}{\hyperref[insn:bne]{bne}}{rs1,rs2,\hyperref[pcrel.13]{pcrel\_13}}\end{scope}
+	\begin{scope}[shift={(0,-3)}]\DrawInsnOpBType{1100011}{100}{\hyperref[insn:blt]{blt}}{rs1,rs2,\hyperref[pcrel.13]{pcrel\_13}}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawInsnOpBType{1100011}{101}{\hyperref[insn:bge]{bge}}{rs1,rs2,\hyperref[pcrel.13]{pcrel\_13}}\end{scope}
+	\begin{scope}[shift={(0,-6)}]\DrawInsnOpBType{1100011}{110}{\hyperref[insn:bltu]{bltu}}{rs1,rs2,\hyperref[pcrel.13]{pcrel\_13}}\end{scope}
+	\begin{scope}[shift={(0,-7.5)}]\DrawInsnOpBType{1100011}{111}{\hyperref[insn:bgeu]{bgeu}}{rs1,rs2,\hyperref[pcrel.13]{pcrel\_13}}\end{scope}
+
+	\begin{scope}[shift={(0,-7.5)}]\DrawHexMarkersRel{32}\end{scope}
+}
+\newcommand\DrawAllInsnOpsLoad{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpIType{0000011}{000}{\hyperref[insn:lb]{lb}}{rd,\hyperref[imm.i:decode]{imm}(rs1)}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpIType{0000011}{001}{\hyperref[insn:lh]{lh}}{rd,\hyperref[imm.i:decode]{imm}(rs1)}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawInsnOpIType{0000011}{010}{\hyperref[insn:lw]{lw}}{rd,\hyperref[imm.i:decode]{imm}(rs1)}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawInsnOpIType{0000011}{100}{\hyperref[insn:lbu]{lbu}}{rd,\hyperref[imm.i:decode]{imm}(rs1)}\end{scope}
+	\begin{scope}[shift={(0,-6.0)}]\DrawInsnOpIType{0000011}{101}{\hyperref[insn:lhu]{lhu}}{rd,\hyperref[imm.i:decode]{imm}(rs1)}\end{scope}
+
+	\begin{scope}[shift={(0,-6.0)}]\DrawHexMarkersRel{32}\end{scope}
+}
+\newcommand\DrawAllInsnOpsStore{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpSType{0100011}{000}{\hyperref[insn:sb]{sb}}{rs2,\hyperref[imm.s:decode]{imm}(rs1)}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpSType{0100011}{001}{\hyperref[insn:sh]{sh}}{rs2,\hyperref[imm.s:decode]{imm}(rs1)}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawInsnOpSType{0100011}{010}{\hyperref[insn:sw]{sw}}{rs2,\hyperref[imm.s:decode]{imm}(rs1)}\end{scope}
+
+	\begin{scope}[shift={(0,-3.0)}]\DrawHexMarkersRel{32}\end{scope}
+}
+\newcommand\DrawAllInsnOpsALUImm{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpIType{0010011}{000}{\hyperref[insn:addi]{addi}}{rd,rs1,\hyperref[imm.i:decode]{imm}}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpIType{0010011}{010}{\hyperref[insn:slti]{slti}}{rd,rs1,\hyperref[imm.i:decode]{imm}}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawInsnOpIType{0010011}{011}{\hyperref[insn:sltiu]{sltiu}}{rd,rs1,\hyperref[imm.i:decode]{imm}}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawInsnOpIType{0010011}{100}{\hyperref[insn:xori]{xori}}{rd,rs1,\hyperref[imm.i:decode]{imm}}\end{scope}
+	\begin{scope}[shift={(0,-6.0)}]\DrawInsnOpIType{0010011}{110}{\hyperref[insn:ori]{ori}}{rd,rs1,\hyperref[imm.i:decode]{imm}}\end{scope}
+	\begin{scope}[shift={(0,-7.5)}]\DrawInsnOpIType{0010011}{111}{\hyperref[insn:andi]{andi}}{rd,rs1,\hyperref[imm.i:decode]{imm}}\end{scope}
+
+	\begin{scope}[shift={(0,-7.5)}]\DrawHexMarkersRel{32}\end{scope}
+}
+\newcommand\DrawAllInsnOpsShiftImm{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpITypeShift{0010011}{001}{0000000}{\hyperref[insn:slli]{slli}}{rd,rs1,\hyperref[shamt.i:decode]{shamt}}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpITypeShift{0010011}{101}{0000000}{\hyperref[insn:srli]{srli}}{rd,rs1,\hyperref[shamt.i:decode]{shamt}}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawInsnOpITypeShift{0010011}{101}{0100000}{\hyperref[insn:srai]{srai}}{rd,rs1,\hyperref[shamt.i:decode]{shamt}}\end{scope}
+
+	\begin{scope}[shift={(0,-3.0)}]\DrawHexMarkersRel{32}\end{scope}
+}
+\newcommand\DrawAllInsnOpsALUR{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpRType{0110011}{000}{0000000}{\hyperref[insn:add]{add}}{rd,rs1,rs2}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpRType{0110011}{000}{0100000}{\hyperref[insn:sub]{sub}}{rd,rs1,rs2}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawInsnOpRType{0110011}{001}{0000000}{\hyperref[insn:sll]{sll}}{rd,rs1,rs2}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawInsnOpRType{0110011}{010}{0000000}{\hyperref[insn:slt]{slt}}{rd,rs1,rs2}\end{scope}
+	\begin{scope}[shift={(0,-6.0)}]\DrawInsnOpRType{0110011}{011}{0000000}{\hyperref[insn:sltu]{sltu}}{rd,rs1,rs2}\end{scope}
+	\begin{scope}[shift={(0,-7.5)}]\DrawInsnOpRType{0110011}{100}{0000000}{\hyperref[insn:xor]{xor}}{rd,rs1,rs2}\end{scope}
+	\begin{scope}[shift={(0,-9.0)}]\DrawInsnOpRType{0110011}{101}{0000000}{\hyperref[insn:srl]{srl}}{rd,rs1,rs2}\end{scope}
+	\begin{scope}[shift={(0,-10.5)}]\DrawInsnOpRType{0110011}{101}{0100000}{\hyperref[insn:sra]{sra}}{rd,rs1,rs2}\end{scope}
+	\begin{scope}[shift={(0,-12.0)}]\DrawInsnOpRType{0110011}{110}{0000000}{\hyperref[insn:or]{or}}{rd,rs1,rs2}\end{scope}
+	\begin{scope}[shift={(0,-13.5)}]\DrawInsnOpRType{0110011}{111}{0000000}{\hyperref[insn:and]{and}}{rd,rs1,rs2}\end{scope}
+
+	\begin{scope}[shift={(0,-13.5)}]\DrawHexMarkersRel{32}\end{scope}
+}
+\newcommand\DrawAllInsnOpsFence{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpFenceType{0001111}{000}{\hyperref[insn:fence]{fence}}{pred,succ}\end{scope}
+	%\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+}
+\newcommand\DrawAllInsnOpsSim{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpSysType{1110011}{000000000000}{\hyperref[insn:ecall]{ecall}}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpSysType{1110011}{000000000001}{\hyperref[insn:ebreak]{ebreak}}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawHexMarkersRel{32}\end{scope}
+}
+
+\newcommand\DrawAllInsnOpsSystem{
+	\begin{scope}[shift={(0,0)}]\DrawInsnOpITypeSystem{1110011}{001}{\hyperref[insn:csrrw]{csrrw}}{rd,\hyperref[csr.i:decode]{csr},rs1}{rs1}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawInsnOpITypeSystem{1110011}{010}{\hyperref[insn:csrrs]{csrrs}}{rd,\hyperref[csr.i:decode]{csr},rs1}{rs1}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawInsnOpITypeSystem{1110011}{011}{\hyperref[insn:csrrc]{csrrc}}{rd,\hyperref[csr.i:decode]{csr},rs1}{rs1}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawInsnOpITypeSystem{1110011}{101}{\hyperref[insn:csrrwi]{csrrwi}}{rd,\hyperref[csr.i:decode]{csr},zimm}{zimm[4:0]}\end{scope}
+	\begin{scope}[shift={(0,-6.0)}]\DrawInsnOpITypeSystem{1110011}{110}{\hyperref[insn:csrrsi]{csrrsi}}{rd,\hyperref[csr.i:decode]{csr},zimm}{zimm[4:0]}\end{scope}
+	\begin{scope}[shift={(0,-7.5)}]\DrawInsnOpITypeSystem{1110011}{111}{\hyperref[insn:csrrci]{csrrci}}{rd,\hyperref[csr.i:decode]{csr},zimm}{zimm[4:0]}\end{scope}
+	\begin{scope}[shift={(0,-7.5)}]\DrawHexMarkersRel{32}\end{scope}
+}
+
+\newcommand\DrawAllInsnOps{
+	\BeginTikzPicture
+	\begin{scope}[shift={(0,1.5)}]\DrawInsnBoxCastleRtype\end{scope}
+	\begin{scope}[shift={(0,0)}]\DrawAllInsnOpsU\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawAllInsnOpsJAL\end{scope}
+	\begin{scope}[shift={(0,-6.2)}]\DrawAllInsnOpsBranch\end{scope}
+	\begin{scope}[shift={(0,-15.4)}]\DrawAllInsnOpsLoad\end{scope}
+	\begin{scope}[shift={(0,-23.1)}]\DrawAllInsnOpsStore\end{scope}
+	\begin{scope}[shift={(0,-27.8)}]\DrawAllInsnOpsALUImm\end{scope}
+	\begin{scope}[shift={(0,-37.0)}]\DrawAllInsnOpsShiftImm\end{scope}
+	\begin{scope}[shift={(0,-41.7)}]\DrawAllInsnOpsALUR\end{scope}
+	\begin{scope}[shift={(0,-57.4)}]\DrawAllInsnOpsSim\end{scope}
+	\begin{scope}[shift={(0,-60.6)}]\DrawAllInsnOpsSystem\end{scope}
+
+	\EndTikzPicture
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GREEN CARD VERSION OF INSN DIAGRAMS
+
+
+\newcommand\GCPageWidth{85.8}
+%\newcommand\GCPageWidth{86}
+
+% box, insn, desc, rtl
+%\newcommand\GCInsnEncodingPosX{0}		% the box, sans-castle
+%\newcommand\GCInsnTypePosX{32.6}			% R,I,U,B,...
+%\newcommand\GCInsnMnemonicPosX{34}		% the template instruction source
+%\newcommand\GCInsnDescriptionPosX{47}	% the long-form description
+%\newcommand\GCInsnRTLPosX{64}			% the detailed RTL description
+
+% insn, desc, rtl, box
+\newcommand\GCInsnMnemonicPosX{0}		% the template instruction source
+\newcommand\GCInsnDescriptionPosX{13}	% the long-form description
+\newcommand\GCInsnRTLPosX{29.7}			% the detailed RTL description
+\newcommand\GCInsnTypePosX{52.5}			% R,I,U,B,...
+\newcommand\GCInsnEncodingPosX{53}		% the box, sans-castle
+
+% #1 opcode
+% #2 mnemonic
+% #3 args
+% #4 description
+% #5 RTL
+\newcommand\DrawGCInsnOpU[5]{
+	\begin{scope}[shift={(\GCInsnMnemonicPosX,.6)}]\DrawInsnSrc{#2}{#3}\end{scope}
+	\draw(\GCInsnTypePosX,.75) node {U};
+	\draw(\GCInsnDescriptionPosX,.6) node[right]{#4};
+	\draw(\GCInsnRTLPosX,.6) node[right]{#5};
+	\begin{scope}[shift={(\GCInsnEncodingPosX,0)}]\DrawInsnOpUBox{imm[31:12]}{rd}{#1}\end{scope}
+}
+
+% #1 opcode
+% #2 mnemonic
+% #3 args
+% #4 description
+% #5 RTL
+\newcommand\DrawGCInsnOpJ[5]{
+	\begin{scope}[shift={(\GCInsnMnemonicPosX,.6)}]\DrawInsnSrc{#2}{#3}\end{scope}
+	\draw(\GCInsnTypePosX,.75) node {J};
+	\draw(\GCInsnDescriptionPosX,.6) node[right]{#4};
+	\draw(\GCInsnRTLPosX,.6) node[right]{#5};
+	\begin{scope}[shift={(\GCInsnEncodingPosX,0)}]\DrawInsnOpJBox{imm[20\textbar10:1\textbar11\textbar19:12]}{rd}{#1}\end{scope}
+}
+
+% #1 opcode
+% #2 funct3
+% #3 mnemonic
+% #4 args
+% #5 description
+% #6 RTL
+\newcommand\DrawGCInsnOpI[6]{
+	\begin{scope}[shift={(\GCInsnMnemonicPosX,.6)}]\DrawInsnSrc{#3}{#4}\end{scope}
+	\draw(\GCInsnTypePosX,.75) node {I};
+	\draw(\GCInsnDescriptionPosX,.6) node[right]{#5};
+	\draw(\GCInsnRTLPosX,.6) node[right]{#6};
+	\begin{scope}[shift={(\GCInsnEncodingPosX,0)}]\DrawInsnOpIBox{imm[11:0]}{rs1}{#1}{rd}{#2}\end{scope}
+}
+
+% #1 opcode
+% #2 funct3
+% #3 funct7
+% #4 mnemonic
+% #5 args
+% #6 description
+% #7 RTL
+\newcommand\DrawGCInsnOpIShift[7]{
+	\begin{scope}[shift={(\GCInsnMnemonicPosX,.6)}]\DrawInsnSrc{#4}{#5}\end{scope}
+	\draw(\GCInsnTypePosX,.75) node {I};
+	\draw(\GCInsnDescriptionPosX,.6) node[right]{#6};
+	\draw(\GCInsnRTLPosX,.6) node[right]{#7};
+	\begin{scope}[shift={(\GCInsnEncodingPosX,0)}]\DrawInsnOpIFunctBox{#1}{shamt}{rs1}{#2}{rd}{#3}\end{scope}
+}
+
+% #1 opcode
+% #2 funct3
+% #3 mnemonic
+% #4 args
+% #5 csr
+% #6 description
+% #7 RTL
+\newcommand\DrawGCInsnOpICSR[7]{
+	\begin{scope}[shift={(\GCInsnMnemonicPosX,.6)}]\DrawInsnSrc{#3}{#4}\end{scope}
+	\draw(\GCInsnTypePosX,.75) node {I};
+	\draw(\GCInsnDescriptionPosX,.6) node[right]{#6};
+	\draw(\GCInsnRTLPosX,.6) node[right]{#7};
+	\begin{scope}[shift={(\GCInsnEncodingPosX,0)}]\DrawInsnOpIBox{csr[11:0]}{#5}{#1}{rd}{#2}\end{scope}
+}
+
+% #1 opcode
+% #2 funct3
+% #3 mnemonic
+% #4 args
+% #5 description
+% #6 RTL
+\newcommand\DrawGCInsnOpB[6]{
+	\begin{scope}[shift={(\GCInsnMnemonicPosX,.6)}]\DrawInsnSrc{#3}{#4}\end{scope}
+	\draw(\GCInsnTypePosX,.75) node {B};
+	\draw(\GCInsnDescriptionPosX,.6) node[right]{#5};
+	\draw(\GCInsnRTLPosX,.6) node[right]{#6};
+	\begin{scope}[shift={(\GCInsnEncodingPosX,0)}]\DrawInsnOpBBox{imm[12\textbar10:5]}{rs2}{rs1}{#1}{imm[4:1\textbar11]}{#2}\end{scope}
+}
+
+% #1 opcode
+% #2 funct3
+% #3 mnemonic
+% #4 args
+% #5 description
+% #6 RTL
+\newcommand\DrawGCInsnOpS[6]{
+	\begin{scope}[shift={(\GCInsnMnemonicPosX,.6)}]\DrawInsnSrc{#3}{#4}\end{scope}
+	\draw(\GCInsnTypePosX,.75) node {S};
+	\draw(\GCInsnDescriptionPosX,.6) node[right]{#5};
+	\draw(\GCInsnRTLPosX,.6) node[right]{#6};
+	\begin{scope}[shift={(\GCInsnEncodingPosX,0)}]\DrawInsnOpBBox{imm[11:5]}{rs2}{rs1}{#1}{imm[4:0]}{#2}\end{scope}
+}
+
+% #1 opcode
+% #2 funct3
+% #3 funct7
+% #4 mnemonic
+% #5 args
+% #6 description
+% #7 RTL
+\newcommand\DrawGCInsnOpR[7]{
+	\begin{scope}[shift={(\GCInsnMnemonicPosX,.6)}]\DrawInsnSrc{#4}{#5}\end{scope}
+	\draw(\GCInsnTypePosX,.75) node {R};
+	\draw(\GCInsnDescriptionPosX,.6) node[right]{#6};
+	\draw(\GCInsnRTLPosX,.6) node[right]{#7};
+	\begin{scope}[shift={(\GCInsnEncodingPosX,0)}]\DrawInsnOpRBox{#3}{rs2}{rs1}{#2}{rd}{#1}\end{scope}
+}
+
+% #1 opcode
+% #2 funct7
+% #3 mnemonic
+% #4 description
+\newcommand\DrawGCInsnOpSys[4]{
+	\begin{scope}[shift={(\GCInsnMnemonicPosX,.6)}]\DrawInsnSrc{#3}{}\end{scope}
+	\draw(\GCInsnTypePosX,.75) node {I};
+	\draw(\GCInsnDescriptionPosX,.6) node[right]{#4};
+%	\draw(\GCInsnRTLPosX,.6) node[right]{#4};
+	\begin{scope}[shift={(\GCInsnEncodingPosX,0)}]\DrawInsnOpIBinBox{#20000000000000#1}\end{scope}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newcommand\DrawGCAllInsnOpsU{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpU{0110111}{lui}{rd,imm}{Load Upper Immediate}{\tt rd $\leftarrow$ imm\_u, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpU{0010111}{auipc}{rd,imm}{Add Upper Immediate to PC}{\tt rd $\leftarrow$ pc + imm\_u, pc $\leftarrow$ pc+4}\end{scope}
+}
+
+\newcommand\DrawGCAllInsnOpsJAL{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpJ{1101111}{jal}{rd,pcrel\_21}{Jump And Link}{\tt rd $\leftarrow$ pc+4, pc $\leftarrow$ pc+imm\_j}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpI{1100111}{000}{jalr}{rd,imm(rs1)}{Jump And Link Register}{\tt rd $\leftarrow$ pc+4, pc $\leftarrow$ (rs1+imm\_i) $\land$ $\sim$1}\end{scope}
+}
+
+\newcommand\DrawGCAllInsnOpsBranch{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpB{1100011}{000}{beq}{rs1,rs2,pcrel\_13}{Branch Equal}{\tt pc $\leftarrow$ pc + ((rs1==rs2) ?\ imm\_b :\ 4)}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpB{1100011}{001}{bne}{rs1,rs2,pcrel\_13}{Branch Not Equal}{\tt pc $\leftarrow$ pc + ((rs1!=rs2) ?\ imm\_b :\ 4)}\end{scope}
+	\begin{scope}[shift={(0,-3)}]\DrawGCInsnOpB{1100011}{100}{blt}{rs1,rs2,pcrel\_13}{Branch Less Than}{\tt pc $\leftarrow$ pc + ((rs1<rs2) ?\ imm\_b :\ 4)}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawGCInsnOpB{1100011}{101}{bge}{rs1,rs2,pcrel\_13}{Branch Greater or Equal}{\tt pc $\leftarrow$ pc + ((rs1>=rs2) ?\ imm\_b :\ 4)}\end{scope}
+	\begin{scope}[shift={(0,-6)}]\DrawGCInsnOpB{1100011}{110}{bltu}{rs1,rs2,pcrel\_13}{Branch Less Than Unsigned}{\tt pc $\leftarrow$ pc + ((rs1<rs2) ?\ imm\_b :\ 4)}\end{scope}
+	\begin{scope}[shift={(0,-7.5)}]\DrawGCInsnOpB{1100011}{111}{bgeu}{rs1,rs2,pcrel\_13}{Branch Greater or Equal Unsigned}{\tt pc $\leftarrow$ pc + ((rs1>=rs2) ?\ imm\_b :\ 4)}\end{scope}
+}
+\newcommand\DrawGCAllInsnOpsLoad{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpI{0000011}{000}{lb}{rd,imm(rs1)}{Load Byte}{\tt rd $\leftarrow$ sx(m8(rs1+imm\_i)), pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpI{0000011}{001}{lh}{rd,imm(rs1)}{Load Halfword}{\tt rd $\leftarrow$ sx(m16(rs1+imm\_i)), pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawGCInsnOpI{0000011}{010}{lw}{rd,imm(rs1)}{Load Word}{\tt rd $\leftarrow$ sx(m32(rs1+imm\_i)), pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawGCInsnOpI{0000011}{100}{lbu}{rd,imm(rs1)}{Load Byte Unsigned}{\tt rd $\leftarrow$ zx(m8(rs1+imm\_i)), pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-6.0)}]\DrawGCInsnOpI{0000011}{101}{lhu}{rd,imm(rs1)}{Load Halfword Unsigned}{\tt rd $\leftarrow$ zx(m16(rs1+imm\_i)), pc $\leftarrow$ pc+4}\end{scope}
+}
+
+\newcommand\DrawGCAllInsnOpsALUImm{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpI{0010011}{000}{addi}{rd,rs1,imm}{Add Immediate}{\tt rd $\leftarrow$ rs1 + imm\_i, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpI{0010011}{010}{slti}{rd,rs1,imm}{Set Less Than Immediate}{\tt rd $\leftarrow$ (rs1 < imm\_i) ?\ 1 :\ 0, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawGCInsnOpI{0010011}{011}{sltiu}{rd,rs1,imm}{Set Less Than Immediate Unsigned}{\tt rd $\leftarrow$ (rs1 < imm\_i) ?\ 1 :\ 0, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawGCInsnOpI{0010011}{100}{xori}{rd,rs1,imm}{Exclusive Or Immediate}{\tt rd $\leftarrow$ rs1 $\oplus$ imm\_i, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-6.0)}]\DrawGCInsnOpI{0010011}{110}{ori}{rd,rs1,imm}{Or Immediate}{\tt rd $\leftarrow$ rs1 $\lor$ imm\_i, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-7.5)}]\DrawGCInsnOpI{0010011}{111}{andi}{rd,rs1,imm}{And Immediate}{\tt rd $\leftarrow$ rs1 $\land$ imm\_i, pc $\leftarrow$ pc+4}\end{scope}
+}
+
+% note that the S-Type insns have the same field-format as the B-type
+\newcommand\DrawGCAllInsnOpsStore{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpS{0100011}{000}{sb}{rs2,imm(rs1)}{Store Byte}{\tt m8(rs1+imm\_s) $\leftarrow$ rs2[7:0], pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpS{0100011}{001}{sh}{rs2,imm(rs1)}{Store Halfword}{\tt m16(rs1+imm\_s) $\leftarrow$ rs2[15:0], pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawGCInsnOpS{0100011}{010}{sw}{rs2,imm(rs1)}{Store Word}{\tt m32(rs1+imm\_s) $\leftarrow$ rs2[31:0], pc $\leftarrow$ pc+4}\end{scope}
+}
+
+\newcommand\DrawGCAllInsnOpsALUR{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpR{0110011}{000}{0000000}{add}{rd,rs1,rs2}{Add}{\tt rd $\leftarrow$ rs1 + rs2, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpR{0110011}{000}{0100000}{sub}{rd,rs1,rs2}{Subtract}{\tt rd $\leftarrow$ rs1 - rs2, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawGCInsnOpR{0110011}{001}{0000000}{sll}{rd,rs1,rs2}{Shift Left Logical}{\tt rd $\leftarrow$ rs1 << (rs2\%XLEN), pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawGCInsnOpR{0110011}{010}{0000000}{slt}{rd,rs1,rs2}{Set Less Than}{\tt rd $\leftarrow$ (rs1 < rs2) ?\ 1 :\ 0, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-6.0)}]\DrawGCInsnOpR{0110011}{011}{0000000}{sltu}{rd,rs1,rs2}{Set Less Than Unsigned}{\tt rd $\leftarrow$ (rs1 < rs2) ?\ 1 :\ 0, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-7.5)}]\DrawGCInsnOpR{0110011}{100}{0000000}{xor}{rd,rs1,rs2}{Exclusive Or}{\tt rd $\leftarrow$ rs1 $\oplus$ rs2, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-9.0)}]\DrawGCInsnOpR{0110011}{101}{0000000}{srl}{rd,rs1,rs2}{Shift Right Logical}{\tt rd $\leftarrow$ rs1 >> (rs2\%XLEN), pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-10.5)}]\DrawGCInsnOpR{0110011}{101}{0100000}{sra}{rd,rs1,rs2}{Shift Right Arithmetic}{\tt rd $\leftarrow$ rs1 >> (rs2\%XLEN), pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-12.0)}]\DrawGCInsnOpR{0110011}{110}{0000000}{or}{rd,rs1,rs2}{Or}{\tt rd $\leftarrow$ rs1 $\lor$ rs2, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-13.5)}]\DrawGCInsnOpR{0110011}{111}{0000000}{and}{rd,rs1,rs2}{And}{\tt rd $\leftarrow$ rs1 $\land$ rs2, pc $\leftarrow$ pc+4}\end{scope}
+}
+
+\newcommand\DrawGCAllInsnOpsSystem{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpICSR{1110011}{001}{csrrw}{rd,csr,rs1}{rs1}{Atomic Read/Write}{\tt rd $\leftarrow$ csr, csr $\leftarrow$ rs1, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpICSR{1110011}{010}{csrrs}{rd,csr,rs1}{rs1}{Atomic Read and Set}{\tt rd $\leftarrow$ csr, csr $\leftarrow$ csr $\lor$ rs1, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawGCInsnOpICSR{1110011}{011}{csrrc}{rd,csr,rs1}{rs1}{Atomic Read and Clear}{\tt rd $\leftarrow$ csr, csr $\leftarrow$ csr $\land$ $\sim$rs1, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-4.5)}]\DrawGCInsnOpICSR{1110011}{101}{csrrwi}{rd,csr,zimm}{zimm[4:0]}{Atomic Read/Write Immediate}{\tt rd $\leftarrow$ csr, csr $\leftarrow$ zimm, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-6.0)}]\DrawGCInsnOpICSR{1110011}{110}{csrrsi}{rd,csr,zimm}{zimm[4:0]}{Atomic Read and Set Immediate}{\tt rd $\leftarrow$ csr, csr $\leftarrow$ csr $\lor$ zimm, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-7.5)}]\DrawGCInsnOpICSR{1110011}{111}{csrrci}{rd,csr,zimm}{zimm[4:0]}{Atomic Read and Clear Immediate}{\tt rd $\leftarrow$ csr, csr $\leftarrow$ csr $\land$ $\sim$zimm, pc $\leftarrow$ pc+4}\end{scope}
+}
+
+\newcommand\DrawGCAllInsnOpsSim{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpSys{1110011}{000000000000}{ecall}{Trap to Debugger}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpSys{1110011}{000000000001}{ebreak}{Trap to Operating System}\end{scope}
+}
+
+\newcommand\DrawGCAllInsnOpsShiftImm{
+	\begin{scope}[shift={(0,0)}]\DrawGCInsnOpIShift{0010011}{001}{0000000}{slli}{rd,rs1,shamt}{Shift Left Logical Immediate}{\tt rd $\leftarrow$ rs1 << shamt\_i, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-1.5)}]\DrawGCInsnOpIShift{0010011}{101}{0000000}{srli}{rd,rs1,shamt}{Shift Right Logical Immediate}{\tt rd $\leftarrow$ rs1 >> shamt\_i, pc $\leftarrow$ pc+4}\end{scope}
+	\begin{scope}[shift={(0,-3.0)}]\DrawGCInsnOpIShift{0010011}{101}{0100000}{srai}{rd,rs1,shamt}{Shift Right Arithmetic Immediate}{\tt rd $\leftarrow$ rs1 >> shamt\_i, pc $\leftarrow$ pc+4}\end{scope}
+}
+
+\newcommand\DrawGCAllInsnOpsPseudo{
+	\draw(0,    0) node[right]{p1};
+	\draw(0, -1.5) node[right]{p1};
+	\draw(0, -3.0) node[right]{p1};
+	\draw(0, -4.5) node[right]{p1};
+	\draw(0, -6.0) node[right]{p1};
+	\draw(0, -7.5) node[right]{p1};
+	\draw(0, -9.0) node[right]{p1};
+	\draw(0,-10.5) node[right]{p1};
+	\draw(0,-12.0) node[right]{p1};
+	\draw(0,-13.5) node[right]{p1};
+	\draw(0,-15.0) node[right]{p1};
+	\draw(0,-16.5) node[right]{p1};
+	\draw(0,-18.0) node[right]{p1};
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% a color to hilight the rows on the card
+\definecolor{GCBarColorBG}{RGB}{200,255,200}
+\definecolor{GCBarColorFG}{RGB}{128,220,128}
+\definecolor{GCSlugColorFG}{RGB}{20,100,20}
+
+\newcommand\DrawGCAllInsnOps{
+	\BeginTikzPicture
+
+	% draw color graybars
+	\foreach \y in {1.5,-7.5,...,-66}%
+		\draw [draw=GCBarColorFG,fill=GCBarColorBG,thick] (0,\y) rectangle (\GCPageWidth,\y-4.5);
+
+	% draw some nybble-slugs
+	\foreach \y in {-3,-7.5,...,-66}%
+		\foreach \x in {4,8,...,30}%
+			\draw [line width=.5mm,draw=GCSlugColorFG] (\x+.5+\GCInsnEncodingPosX,\y) -- (\x+.5+\GCInsnEncodingPosX, \y+.3);%
+
+	\begin{scope}[shift={(\GCInsnEncodingPosX,1.5)}]\DrawInsnBoxCastleRtype\end{scope}
+
+	% add some field names in the castle
+	\begin{scope}[shift={(\GCInsnEncodingPosX,1.5)}]
+		\node at (4,1.25) {\small funct7};
+		\node at (19,1.25) {\small funct3};
+		\node at (29,1.25) {\small opcode};
+	\end{scope}
+
+	\draw node at (\GCInsnMnemonicPosX+6,2.75) {\small Instruction};
+	\draw node at (\GCInsnDescriptionPosX+8,2.75) {\small Description};
+	\draw node at (\GCInsnRTLPosX+12,2.75) {\small Operation};
+	\draw node at (\GCInsnTypePosX,2.75) {\small Type};
+
+	%\node [draw, rotate=90] at (0,60) {\small RV32I Reference Card (\href{https://github.com/johnwinans/rvalp}{https://github.com/johnwinans/rvalp})};
+	%\draw node[rotate=90,right] at (\GCPageWidth+.7,-66) {\small RV32I Reference Card};
+	%\draw node[rotate=90,left] at (\GCPageWidth+.7,1.5) {\small https://github.com/johnwinans/rvalp};
+	\draw node[rotate=90,right] at (-.7,-66) {\small RV32I Reference Card};
+	\draw node[rotate=90,left] at (-.7,1.5) {\small https://github.com/johnwinans/rvalp};
+
+
+	\begin{scope}[shift={(0,0)}]\DrawGCAllInsnOpsU\end{scope}
+	\begin{scope}[shift={(0,-3)}]\DrawGCAllInsnOpsJAL\end{scope}
+	\begin{scope}[shift={(0,-6)}]\DrawGCAllInsnOpsBranch\end{scope}
+	\begin{scope}[shift={(0,-15)}]\DrawGCAllInsnOpsLoad\end{scope}
+	\begin{scope}[shift={(0,-22.5)}]\DrawGCAllInsnOpsStore\end{scope}
+	\begin{scope}[shift={(0,-27)}]\DrawGCAllInsnOpsALUImm\end{scope}
+	\begin{scope}[shift={(0,-36)}]\DrawGCAllInsnOpsShiftImm\end{scope}
+	\begin{scope}[shift={(0,-40.5)}]\DrawGCAllInsnOpsALUR\end{scope}
+	\begin{scope}[shift={(0,-55.5)}]\DrawGCAllInsnOpsSim\end{scope}
+	\begin{scope}[shift={(0,-58.5)}]\DrawGCAllInsnOpsSystem\end{scope}
+
+	% stub in some space for pseudo-instruictions to see what it might look like
+	%\begin{scope}[shift={(0,-67)}]\DrawGCAllInsnOpsPseudo\end{scope}
+
+	% show markers to indicate where to fold it
+	\draw [line width=.1mm,draw=GCSlugColorFG] (29.5,1) -- (29.5, 1.5);
+	\draw [line width=.1mm,draw=GCSlugColorFG] (29.5,-65.5) -- (29.5, -66);
+
+	\EndTikzPicture
+}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\InsnBoxFieldWidthArrowVskip{.5}
+\newcommand\InsnBoxFieldWidthArrowHskip{.05}
+
+% #1 MSB position
+% #2 LSB position
+\newcommand\InsnBoxFieldWidthArrow[2]{
+	\pgfmathsetmacro\leftpos{int(31-#1)}		% Calculate the left end position
+	\pgfmathsetmacro\wid{int(#1-#2+1)}			% calculate the width
+	\begin{scope}[shift={(\leftpos,-\InsnBoxFieldWidthArrowVskip)}]	% Move to left end of arrow & below origin
+    	\pgfmathsetmacro\result{\wid*.5+.5}		% the center position
+    	\node at (\result,0) {\tiny\wid};		% draw the size number below the box
+
+		\ifthenelse{\wid > 9}					% make 1-9 narrower than 10-99
+		{ \pgfmathsetmacro\Inset{0.4} }
+		{
+			\ifthenelse{\wid > 1} 				% make 1 narrower than 2-9
+			{ \pgfmathsetmacro\Inset{0.25} }
+			{ \pgfmathsetmacro\Inset{0.15} }
+		}
+
+		% arrowsInsnBoxFieldWidthArrowHskip
+    	\draw[->] (\result+\Inset,0) -- (\wid+.5-\InsnBoxFieldWidthArrowHskip,0);	% arrow to the right
+    	\draw[->] (\result-\Inset,0) -- (.5+\InsnBoxFieldWidthArrowHskip,0);		% arrow to the left
+
+		\pgfmathsetmacro\x{.5}
+		\pgfmathsetmacro\y{\InsnBoxFieldWidthArrowVskip}
+		% vertical bars at the ends of the arrows
+    	\draw[-] (\x,\y) -- (\x,-\y*.5);
+		\pgfmathsetmacro\x{(\wid+.5}
+    	\draw[-] (\x,\y) -- (\x,-\y*.5);
+
+	\end{scope}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\BitBoxArrowTailInset{-.9}
+\newcommand\BitBoxArrowHeadInset{-16.7-\BitBoxArrowTailInset}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% special case for R type instructions for consistency
+\newcommand\InsnOpRTypeDecoding{
+
+	\begin{scope}[shift={(0,-1.5)}]
+	\DrawInsnTypeR{abcdefghijklmnopqrstuvwxy1101111}
+	\end{scope}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\InsnOpJTypeDecoding{
+
+	\begin{scope}[shift={(0,-1.5)}]
+
+	\DrawInsnTypeJ{abcdefghijklmnopqrst001111101111}
+
+	\pgfmathsetmacro\ArrowNorth{\BitBoxArrowTailInset}
+	\pgfmathsetmacro\ArrowSouth{\BitBoxArrowHeadInset}
+
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](1,\ArrowSouth);	% 20
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](2,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](3,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](4,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](5,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](6,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](7,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](8,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](9,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](10,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](11,\ArrowSouth);	% sign extend
+
+	\draw[blue,->](1,\ArrowNorth)to[out=270,in=90](12,\ArrowSouth);		% 20
+	\draw[blue,->](13,\ArrowNorth)to[out=270,in=90](13,\ArrowSouth);	% 19
+	\draw[blue,->](14,\ArrowNorth)to[out=270,in=90](14,\ArrowSouth);	% 18
+	\draw[blue,->](15,\ArrowNorth)to[out=270,in=90](15,\ArrowSouth);	% 17
+	\draw[blue,->](16,\ArrowNorth)to[out=270,in=90](16,\ArrowSouth);	% 16
+	\draw[blue,->](17,\ArrowNorth)to[out=270,in=90](17,\ArrowSouth);	% 15
+	\draw[blue,->](18,\ArrowNorth)to[out=270,in=90](18,\ArrowSouth);	% 14
+	\draw[blue,->](19,\ArrowNorth)to[out=270,in=90](19,\ArrowSouth);	% 13
+	\draw[blue,->](20,\ArrowNorth)to[out=270,in=90](20,\ArrowSouth);	% 12
+
+	\draw[blue,->](12,\ArrowNorth)to[out=270,in=90](21,\ArrowSouth);	% 11
+
+	\draw[blue,->](2,\ArrowNorth)to[out=270,in=90](22,\ArrowSouth);		% 10
+	\draw[blue,->](3,\ArrowNorth)to[out=270,in=90](23,\ArrowSouth);		% 9
+	\draw[blue,->](4,\ArrowNorth)to[out=270,in=90](24,\ArrowSouth);		% 8
+	\draw[blue,->](5,\ArrowNorth)to[out=270,in=90](25,\ArrowSouth);		% 7
+	\draw[blue,->](6,\ArrowNorth)to[out=270,in=90](26,\ArrowSouth);		% 6
+	\draw[blue,->](7,\ArrowNorth)to[out=270,in=90](27,\ArrowSouth);		% 5
+	\draw[blue,->](8,\ArrowNorth)to[out=270,in=90](28,\ArrowSouth);		% 4
+	\draw[blue,->](9,\ArrowNorth)to[out=270,in=90](29,\ArrowSouth);		% 3
+	\draw[blue,->](10,\ArrowNorth)to[out=270,in=90](30,\ArrowSouth);	% 2
+	\draw[blue,->](11,\ArrowNorth)to[out=270,in=90](31,\ArrowSouth);	% 1
+
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](32,\ArrowSouth);	% 0 (special case)
+	\node at (34.5,\ArrowSouth+5) {0};
+%	\draw[blue,->](32,\ArrowSouth+1)to[out=270,in=90](32,\ArrowSouth);	% 0 (special case)
+%	\node at (32,\ArrowSouth+2) {0};
+
+	\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+	\end{scope}
+
+	\begin{scope}[shift={(0,-19.75)}]
+		\begin{scope}[shift={(0,1.5)}]
+			\DrawInsnBoxCastle{31}{21}
+			\DrawInsnBoxCastle{20}{20}
+			\DrawInsnBoxCastle{19}{12}
+			\DrawInsnBoxCastle{11}{11}
+			\DrawInsnBoxCastle{10}{1}
+			\DrawInsnBoxCastle{0}{0}
+		\end{scope}
+		\DrawInsnBoxRel{31}{0}{}
+		\draw(33,.5) node[text width = 10, text height = 1, right]{imm\_j};
+
+		\begin{scope}[shift={(0,0)}]\DrawBitstringX{aaaaaaaaaaaamnopqrstlbcdefghijk0}\end{scope}
+		\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+
+		\InsnBoxFieldWidthArrow{31}{21}
+		\InsnBoxFieldWidthArrow{20}{20}
+		\InsnBoxFieldWidthArrow{19}{12}
+		\InsnBoxFieldWidthArrow{11}{11}
+		\InsnBoxFieldWidthArrow{10}{1}
+		\InsnBoxFieldWidthArrow{0}{0}
+	\end{scope}
+}
+
+\newcommand\DrawInsnOpJTypeDecoding{
+	\BeginTikzPicture
+	\InsnOpJTypeDecoding
+	\EndTikzPicture
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\InsnOpBTypeDecoding{
+
+	\begin{scope}[shift={(0,-1.5)}]
+
+	\DrawInsnTypeB{abcdefg0111100011000uvwxy1100011}
+
+	\pgfmathsetmacro\ArrowNorth{\BitBoxArrowTailInset}
+	\pgfmathsetmacro\ArrowSouth{\BitBoxArrowHeadInset}
+
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](1,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](2,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](3,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](4,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](5,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](6,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](7,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](8,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](9,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](10,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](11,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](12,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](13,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](14,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](15,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](16,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](17,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](18,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](19,\ArrowSouth);	% sign extend
+
+	\draw[blue,->](1,\ArrowNorth)to[out=270,in=90](20,\ArrowSouth);		% 12
+
+	\draw[blue,->](25,\ArrowNorth)to[out=270,in=90](21,\ArrowSouth);	% 11
+
+	\draw[blue,->](2,\ArrowNorth)to[out=270,in=90](22,\ArrowSouth);		% 10
+	\draw[blue,->](3,\ArrowNorth)to[out=270,in=90](23,\ArrowSouth);		% 9
+	\draw[blue,->](4,\ArrowNorth)to[out=270,in=90](24,\ArrowSouth);		% 8
+	\draw[blue,->](5,\ArrowNorth)to[out=270,in=90](25,\ArrowSouth);		% 7
+	\draw[blue,->](6,\ArrowNorth)to[out=270,in=90](26,\ArrowSouth);		% 6
+	\draw[blue,->](7,\ArrowNorth)to[out=270,in=90](27,\ArrowSouth);		% 5
+
+	\draw[blue,->](21,\ArrowNorth)to[out=270,in=90](28,\ArrowSouth);	% 4
+	\draw[blue,->](22,\ArrowNorth)to[out=270,in=90](29,\ArrowSouth);	% 3
+	\draw[blue,->](23,\ArrowNorth)to[out=270,in=90](30,\ArrowSouth);	% 2
+	\draw[blue,->](24,\ArrowNorth)to[out=270,in=90](31,\ArrowSouth);	% 1
+
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](32,\ArrowSouth);	% 0 (special case)
+	\node at (34.5,\ArrowSouth+5) {0};
+%	\draw[blue,->](32,\ArrowSouth+1)to[out=270,in=90](32,\ArrowSouth);	% 0 (special case)
+%	\node at (32,\ArrowSouth+2) {0};
+
+	\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+	\end{scope}
+
+	\begin{scope}[shift={(0,-19.75)}]
+		\begin{scope}[shift={(0,1.5)}]
+			\DrawInsnBoxCastle{31}{13}
+			\DrawInsnBoxCastle{12}{12}
+			\DrawInsnBoxCastle{11}{11}
+			\DrawInsnBoxCastle{10}{5}
+			\DrawInsnBoxCastle{4}{1}
+			\DrawInsnBoxCastle{0}{0}
+		\end{scope}
+		\DrawInsnBoxRel{31}{0}{}
+		\draw(33,.5) node[text width = 10, text height = 1, right]{imm\_b};
+
+		\begin{scope}[shift={(0,0)}]\DrawBitstringX{aaaaaaaaaaaaaaaaaaaaybcdefguvwx0}\end{scope}
+
+		\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+
+		\InsnBoxFieldWidthArrow{31}{13}
+		\InsnBoxFieldWidthArrow{12}{12}
+		\InsnBoxFieldWidthArrow{11}{11}
+		\InsnBoxFieldWidthArrow{10}{5}
+		\InsnBoxFieldWidthArrow{4}{1}
+		\InsnBoxFieldWidthArrow{0}{0}
+	\end{scope}
+}
+
+\newcommand\DrawInsnOpBTypeDecoding{
+	\BeginTikzPicture
+	\InsnOpBTypeDecoding
+	\EndTikzPicture
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\InsnOpSTypeDecoding{
+
+	\begin{scope}[shift={(0,-1.5)}]
+
+	\DrawInsnTypeS{abcdefg0111100011000uvwxy0100011}
+
+	\pgfmathsetmacro\ArrowNorth{\BitBoxArrowTailInset}
+	\pgfmathsetmacro\ArrowSouth{\BitBoxArrowHeadInset}
+
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](1,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](2,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](3,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](4,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](5,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](6,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](7,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](8,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](9,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](10,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](11,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](12,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](13,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](14,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](15,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](16,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](17,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](18,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](19,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](20,\ArrowSouth);	% sign extend
+
+	\draw[blue,->](1,\ArrowNorth)to[out=270,in=90](21,\ArrowSouth);		% 11
+	\draw[blue,->](2,\ArrowNorth)to[out=270,in=90](22,\ArrowSouth);		% 10
+	\draw[blue,->](3,\ArrowNorth)to[out=270,in=90](23,\ArrowSouth);		% 9
+	\draw[blue,->](4,\ArrowNorth)to[out=270,in=90](24,\ArrowSouth);		% 8
+	\draw[blue,->](5,\ArrowNorth)to[out=270,in=90](25,\ArrowSouth);		% 7
+	\draw[blue,->](6,\ArrowNorth)to[out=270,in=90](26,\ArrowSouth);		% 6
+	\draw[blue,->](7,\ArrowNorth)to[out=270,in=90](27,\ArrowSouth);		% 5
+
+	\draw[blue,->](21,\ArrowNorth)to[out=270,in=90](28,\ArrowSouth);	% 4
+	\draw[blue,->](22,\ArrowNorth)to[out=270,in=90](29,\ArrowSouth);	% 3
+	\draw[blue,->](23,\ArrowNorth)to[out=270,in=90](30,\ArrowSouth);	% 2
+	\draw[blue,->](24,\ArrowNorth)to[out=270,in=90](31,\ArrowSouth);	% 1
+	\draw[blue,->](25,\ArrowNorth)to[out=270,in=90](32,\ArrowSouth);	% 0
+
+	\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+	\end{scope}
+
+	\begin{scope}[shift={(0,-19.75)}]
+		\begin{scope}[shift={(0,1.5)}]
+			\DrawInsnBoxCastle{31}{12}
+			\DrawInsnBoxCastle{11}{5}
+			\DrawInsnBoxCastle{4}{0}
+		\end{scope}
+		\DrawInsnBoxRel{31}{0}{}
+		\draw(33,.5) node[text width = 10, text height = 1, right]{imm\_s};
+
+		\begin{scope}[shift={(0,0)}]\DrawBitstringX{aaaaaaaaaaaaaaaaaaaaabcdefguvwxy}\end{scope}
+
+		\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+
+		\InsnBoxFieldWidthArrow{31}{12}
+		\InsnBoxFieldWidthArrow{11}{5}
+		\InsnBoxFieldWidthArrow{4}{0}
+	\end{scope}
+}
+
+\newcommand\DrawInsnOpSTypeDecoding{
+	\BeginTikzPicture
+	\InsnOpSTypeDecoding
+	\EndTikzPicture
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\InsnOpITypeDecoding{
+
+	\begin{scope}[shift={(0,-1.5)}]
+
+	\DrawInsnTypeI{abcdefghijkl00011000001110000011}
+
+	\pgfmathsetmacro\ArrowNorth{\BitBoxArrowTailInset}
+	\pgfmathsetmacro\ArrowSouth{\BitBoxArrowHeadInset}
+
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](1,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](2,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](3,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](4,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](5,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](6,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](7,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](8,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](9,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](10,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](11,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](12,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](13,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](14,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](15,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](16,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](17,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](18,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](19,\ArrowSouth);	% sign extend
+	\draw[red,->](1,\ArrowNorth)to[out=270,in=90](20,\ArrowSouth);	% sign extend
+
+	\draw[blue,->](1,\ArrowNorth)to[out=270,in=90](21,\ArrowSouth);		% 11
+	\draw[blue,->](2,\ArrowNorth)to[out=270,in=90](22,\ArrowSouth);		% 10
+	\draw[blue,->](3,\ArrowNorth)to[out=270,in=90](23,\ArrowSouth);		% 9
+	\draw[blue,->](4,\ArrowNorth)to[out=270,in=90](24,\ArrowSouth);		% 8
+	\draw[blue,->](5,\ArrowNorth)to[out=270,in=90](25,\ArrowSouth);		% 7
+	\draw[blue,->](6,\ArrowNorth)to[out=270,in=90](26,\ArrowSouth);		% 6
+	\draw[blue,->](7,\ArrowNorth)to[out=270,in=90](27,\ArrowSouth);		% 5
+	\draw[blue,->](8,\ArrowNorth)to[out=270,in=90](28,\ArrowSouth);		% 4
+	\draw[blue,->](9,\ArrowNorth)to[out=270,in=90](29,\ArrowSouth);		% 3
+	\draw[blue,->](10,\ArrowNorth)to[out=270,in=90](30,\ArrowSouth);	% 2
+	\draw[blue,->](11,\ArrowNorth)to[out=270,in=90](31,\ArrowSouth);	% 1
+	\draw[blue,->](12,\ArrowNorth)to[out=270,in=90](32,\ArrowSouth);	% 0
+
+	\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+	\end{scope}
+
+	\begin{scope}[shift={(0,-19.75)}]
+		\begin{scope}[shift={(0,1.5)}]
+			\DrawInsnBoxCastle{31}{12}
+			\DrawInsnBoxCastle{11}{0}
+		\end{scope}
+		\DrawInsnBoxRel{31}{0}{}
+		\draw(33,.5) node[text width = 10, text height = 1, right]{imm\_i};
+
+		\begin{scope}[shift={(0,0)}]\DrawBitstringX{aaaaaaaaaaaaaaaaaaaaabcdefghijkl}\end{scope}
+
+		\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+
+		\InsnBoxFieldWidthArrow{31}{12}
+		\InsnBoxFieldWidthArrow{11}{0}
+	\end{scope}
+}
+
+\newcommand\DrawInsnOpITypeDecoding{
+	\BeginTikzPicture
+	\InsnOpITypeDecoding
+	\EndTikzPicture
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\InsnOpIShiftTypeDecoding{
+
+	\begin{scope}[shift={(0,-1.5)}]
+
+	\DrawInsnTypeI{0b00000hijkl00011000001110000011}
+
+	\pgfmathsetmacro\ArrowNorth{\BitBoxArrowTailInset}
+	\pgfmathsetmacro\ArrowSouth{\BitBoxArrowHeadInset}
+	\pgfmathsetmacro\ZeroNodeY{\ArrowSouth+4}
+	\pgfmathsetmacro\ZeroNodeX{1}
+
+%	\node at (\ZeroNodeX,\ZeroNodeY) {0};
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=90](1,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=90](2,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=90](3,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](4,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](5,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](6,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](7,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](8,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](9,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](10,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](11,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](12,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](13,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](14,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](15,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](16,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](17,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](18,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](19,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](20,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](21,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](22,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](23,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](24,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](25,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](26,\ArrowSouth);
+%	\draw[red,->](\ZeroNodeX+.5,\ZeroNodeY)to[out=0,in=110](27,\ArrowSouth);
+
+	\draw[blue,->](8,\ArrowNorth)to[out=270,in=90](28-8,\ArrowSouth);		% 4
+	\draw[blue,->](9,\ArrowNorth)to[out=270,in=90](29-8,\ArrowSouth);		% 3
+	\draw[blue,->](10,\ArrowNorth)to[out=270,in=90](30-8,\ArrowSouth);	% 2
+	\draw[blue,->](11,\ArrowNorth)to[out=270,in=90](31-8,\ArrowSouth);	% 1
+	\draw[blue,->](12,\ArrowNorth)to[out=270,in=90](32-8,\ArrowSouth);	% 0
+
+	\draw[blue,->](2,\ArrowNorth)to[out=270,in=90](8,\ArrowSouth);		% diff btw logical/arith
+
+	\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+	\end{scope}
+
+	% shamt_i box
+	\begin{scope}[shift={(-8,-19.75)}]
+		\begin{scope}[shift={(0,1.5)}]
+			\DrawInsnBoxCastle{4}{0}
+		\end{scope}
+		\DrawInsnBoxRel{4}{0}{}
+		\draw(33,.5) node[text width = 10, text height = 1, right]{shamt\_i};
+
+		\begin{scope}[shift={(27,0)}]\DrawBitstringX{hijkl}\end{scope}
+
+		%\begin{scope}[shift={(24,0)}]\DrawHexMarkersRel{0}\end{scope}
+		\begin{scope}[shift={(28,0)}]\TheHexMark{0}\end{scope}
+
+		\InsnBoxFieldWidthArrow{4}{0}
+	\end{scope}
+
+	% logical/arith box -- this demonstrates the lack of sane coordinate standards in this file :-/
+	\begin{scope}[shift={(-24,-19.75)}]
+		\begin{scope}[shift={(0,1.5)}]
+			\DrawInsnBoxCastle{0}{0}
+		\end{scope}
+		\DrawInsnBoxRel{0}{0}{}
+		\draw(33,.5) node[text width = 10, text height = 1, right]{srai/srli};
+
+		\begin{scope}[shift={(31,0)}]\DrawBitstringX{b}\end{scope}
+
+		\InsnBoxFieldWidthArrow{0}{0}
+	\end{scope}
+}
+
+\newcommand\DrawInsnOpIShiftTypeDecoding{
+	\BeginTikzPicture
+	\InsnOpIShiftTypeDecoding
+	\EndTikzPicture
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\InsnOpUTypeDecoding{
+
+	\begin{scope}[shift={(0,-1.5)}]
+	\DrawInsnTypeU{abcdefghijklmnopqrst001010110111}
+
+	\pgfmathsetmacro\ArrowNorth{\BitBoxArrowTailInset}
+	\pgfmathsetmacro\ArrowSouth{\BitBoxArrowHeadInset}
+
+	\draw[blue,->](1,\ArrowNorth)to[out=270,in=90](1,\ArrowSouth);		%
+	\draw[blue,->](2,\ArrowNorth)to[out=270,in=90](2,\ArrowSouth);		%
+	\draw[blue,->](3,\ArrowNorth)to[out=270,in=90](3,\ArrowSouth);		%
+	\draw[blue,->](4,\ArrowNorth)to[out=270,in=90](4,\ArrowSouth);		%
+	\draw[blue,->](5,\ArrowNorth)to[out=270,in=90](5,\ArrowSouth);		%
+	\draw[blue,->](6,\ArrowNorth)to[out=270,in=90](6,\ArrowSouth);		%
+	\draw[blue,->](7,\ArrowNorth)to[out=270,in=90](7,\ArrowSouth);		%
+	\draw[blue,->](8,\ArrowNorth)to[out=270,in=90](8,\ArrowSouth);		%
+	\draw[blue,->](9,\ArrowNorth)to[out=270,in=90](9,\ArrowSouth);		%
+	\draw[blue,->](10,\ArrowNorth)to[out=270,in=90](10,\ArrowSouth);	%
+	\draw[blue,->](11,\ArrowNorth)to[out=270,in=90](11,\ArrowSouth);	%
+	\draw[blue,->](12,\ArrowNorth)to[out=270,in=90](12,\ArrowSouth);	%
+	\draw[blue,->](13,\ArrowNorth)to[out=270,in=90](13,\ArrowSouth);	%
+	\draw[blue,->](14,\ArrowNorth)to[out=270,in=90](14,\ArrowSouth);	%
+	\draw[blue,->](15,\ArrowNorth)to[out=270,in=90](15,\ArrowSouth);	%
+	\draw[blue,->](16,\ArrowNorth)to[out=270,in=90](16,\ArrowSouth);	%
+	\draw[blue,->](17,\ArrowNorth)to[out=270,in=90](17,\ArrowSouth);	%
+	\draw[blue,->](18,\ArrowNorth)to[out=270,in=90](18,\ArrowSouth);	%
+	\draw[blue,->](19,\ArrowNorth)to[out=270,in=90](19,\ArrowSouth);	%
+	\draw[blue,->](20,\ArrowNorth)to[out=270,in=90](20,\ArrowSouth);	%
+
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](21,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](22,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](23,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](24,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](25,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](26,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](27,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](28,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](29,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](30,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](31,\ArrowSouth);	%
+	\draw[red,->](34,\ArrowSouth+5)to[out=180,in=90](32,\ArrowSouth);	% 0 (special case)
+	\node at (34.5,\ArrowSouth+5) {0};
+
+	\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+	\end{scope}
+
+	\begin{scope}[shift={(0,-19.75)}]
+		\begin{scope}[shift={(0,1.5)}]
+			\DrawInsnBoxCastle{31}{12}
+			\DrawInsnBoxCastle{11}{0}
+		\end{scope}
+		\DrawInsnBoxRel{31}{0}{}
+		\draw(33,.5) node[text width = 10, text height = 1, right]{imm\_u};
+
+		\begin{scope}[shift={(0,0)}]\DrawBitstringX{abcdefghijklmnopqrst000000000000}\end{scope}
+
+		\begin{scope}[shift={(0,0)}]\DrawHexMarkersRel{32}\end{scope}
+
+		\InsnBoxFieldWidthArrow{31}{12}
+		\InsnBoxFieldWidthArrow{11}{0}
+	\end{scope}
+}
+\newcommand\DrawInsnOpUTypeDecoding{
+	\BeginTikzPicture
+	\InsnOpUTypeDecoding
+	\EndTikzPicture
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw something useful for the cover portion of the tri-fold green-card
+\newcommand\DrawCardTitlePage{
+	\draw[line width=1.5mm] (111-18,-1) -- (111+18,-1);
+	\draw(111,-5) node {\textbf{\Huge RVALP}};
+	\draw(111,-10) node {\textbf{\Huge RV32I Reference Card}};
+	\draw[line width=1.5mm] (111-18,-14) -- (111+18,-14);
+	\draw(111,-150) node {https://github.com/johnwinans/rvalp};
+	\draw(111,-152) node {\small \GitRevision};
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draw all the ribbons in a stack for a reference card
+\newcommand\DrawInsnRibbons{
+	\BeginTikzPicture
+	\begin{scope}[yscale=.75]
+		\begin{scope}[shift={(0,0)}]\InsnOpUTypeDecoding\end{scope}
+		\begin{scope}[shift={(0,-25)}]\InsnOpITypeDecoding\end{scope}
+		\begin{scope}[shift={(0,-50)}]\InsnOpIShiftTypeDecoding\end{scope}
+		\begin{scope}[shift={(0,-75)}]\InsnOpSTypeDecoding\end{scope}
+		\begin{scope}[shift={(0,-100)}]\InsnOpBTypeDecoding\end{scope}
+		\begin{scope}[shift={(0,-125)}]\InsnOpJTypeDecoding\end{scope}
+		\begin{scope}[shift={(0,-150)}]\InsnOpRTypeDecoding\end{scope}
+
+		\begin{scope}[shift={(0,0)}]\DrawCardTitlePage\end{scope}
+	\end{scope}
+	\EndTikzPicture
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IEEE-754 Floating Point Number
+%
+% #1 sign
+% #2 exponent
+% #3 significand
+\newcommand\DrawIEEEFloat[1]{
+	\StrLen{#1}[\numchars]
+	\begin{scope}[shift={(0,.75)}]
+	\DrawInsnBitstring{\numchars}{#1}{}
+    \DrawInsnBoxSeg{\numchars}{31}{31}{sign}
+    \DrawInsnBoxSeg{\numchars}{30}{23}{exponent}
+    \DrawInsnBoxSeg{\numchars}{22}{0}{significand}
+    \draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};   % sign bit
+	\end{scope}
+
+	\DrawHexMarkersRel{\numchars}
+}
+
+\newcommand\DrawBitBoxIEEEFloat[1]{
+	\BeginTikzPicture
+	\begin{scope}[shift={(0,0)}]\DrawIEEEFloat{#1}\end{scope}
+	\EndTikzPicture
+}
+
+
+
+%
+%\newcommand\DrawInsnTypeB[1]{
+%    \StrLen{#1}[\numchars]
+%    \begin{scope}[shift={(0,.75)}]
+%    \DrawInsnBitstring{\numchars}{#1}{\hyperref[insnformat:btype]{B-type}}
+%    \DrawInsnBoxSeg{\numchars}{31}{25}{imm[12\textbar10:5]}
+%    \DrawInsnBoxSeg{\numchars}{24}{20}{rs2}
+%    \DrawInsnBoxSeg{\numchars}{19}{15}{rs1}
+%    \DrawInsnBoxSeg{\numchars}{14}{12}{funct3}
+%    \DrawInsnBoxSeg{\numchars}{11}{7}{imm[4:1\textbar11]}
+%    \DrawInsnBoxSeg{\numchars}{6}{0}{opcode}
+%
+%    % add some hint bits in for imm fields
+%    \draw {[rounded corners=\SignBoxCornerRadius] (1.35, -.6) -- (1.35, .6) -- (.65, .6) -- (.65, -.6) -- cycle};   % sign bit
+%    \draw (32-7-.5, -.75) -- (32-7-.5, .1);     % imm[11]
+%    \draw (32-30-.5, -.75) -- (32-30.5, .1);    % imm[12]
+%
+%    \end{scope}
+%
+%    \DrawHexMarkersRel{\numchars}
+%}

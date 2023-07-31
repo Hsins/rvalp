@@ -1,0 +1,159 @@
+\chapter{Installing a RISC-V Toolchain}
+\label{chapter:install}
+
+All of the software presented in this text was assembled/compiled
+using the GNU toolchain and executed using the rvddt simulator on
+a Linux (Ubuntu 20.04 LTS) operating system.
+
+The installation instructions provided here were last tested on
+on March 5, 2021.
+
+It is expected that these tools will evolve over time.  See the
+respective documentation web sites for the latest news and options
+for installing them.
+
+\section{The GNU Toolchain}
+
+\ednote{It would be good to find some Mac and Windows users to write
+and test proper variations on this section to address those systems.
+Pull requests, welcome!}%
+In order to install custom code in a location that will not cause
+interference with other applications (and allow for easy hacking and
+cleanup), these will install the toolchain under
+a private directory: \verb@~/projects/riscv/install@.  At any time
+you can remove everything and start over by executing the following
+command:
+
+\begin{tty}
+rm -rf ~/projects/riscv/install
+\end{tty}
+
+\begin{tcolorbox}
+Be {\em very} careful how you type the above \verb@rm@ command.
+If typed incorrectly, it could irreversibly remove many of your files!
+\end{tcolorbox}
+
+Before building the toolchain, a number of utilities must be present on
+your system.  The following will install those that are needed:
+
+\begin{minipage}{\textwidth}
+\begin{tty}
+sudo apt install autoconf automake autotools-dev curl python3 python-dev libmpc-dev \
+    libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf \
+    libtool patchutils bc zlib1g-dev libexpat-dev
+\end{tty}
+\end{minipage}
+
+Note that the above \verb@apt@ command is the only operation that should
+be performed as root.  All other commands should be executed as a regular
+user.  This will eliminate the possibility of clobbering system files that
+should not be touched when tinkering with the toolchain applications.
+
+\ednote{Discuss the choice of ilp32 as well as what the other variations
+would do.}%
+To download, compile and install the toolchain:
+
+\begin{minipage}{\textwidth}
+\begin{tty}
+mkdir -p ~/projects/riscv
+cd ~/projects/riscv
+git clone https://github.com/riscv/riscv-gnu-toolchain
+cd riscv-gnu-toolchain
+INS_DIR=~/projects/riscv/install/rv32i
+./configure --prefix=$INS_DIR \
+    --with-multilib-generator="rv32i-ilp32--;rv32imafd-ilp32--;rv32ima-ilp32--"
+make
+\end{tty}
+\end{minipage}
+
+After building the toolchain, make it available by putting it into
+your PATH by adding the following to the end of your \verb@.bashrc@ file:
+
+\begin{tty}
+export PATH=$PATH:$INS_DIR
+\end{tty}
+
+For this \verb@PATH@ change to take place, start a new terminal or paste the
+same \verb@export@ command into your existing terminal.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{rvddt}
+
+Download and install the rvddt simulator by executing the following
+commands.
+Building the rvddt example programs will verify that the GNU toolchain
+has been built and installed properly.
+
+\begin{minipage}{\textwidth}
+%git clone git@github.com:johnwinans/rvddt.git
+\begin{tty}
+cd ~/projects/riscv
+git clone https://github.com/johnwinans/rvddt.git
+cd rvddt/src
+make world
+cd ../examples
+make world
+\end{tty}
+\end{minipage}
+
+After building rvddt, make it available by putting it into your PATH
+by adding the following to the end of your \verb@.bashrc@ file:
+
+\begin{tty}
+export PATH=$PATH:~/projects/riscv/rvddt/src
+\end{tty}
+
+For this \verb@PATH@ change to take place, start a new terminal or paste the
+same \verb@export@ command into your existing terminal.
+
+
+Test the rvddt build by executing one of the examples:
+
+\begin{minipage}{\textwidth}
+\begin{tty}
+winans@ux410:~/projects/riscv/rvddt/examples$ rvddt -f counter/counter.bin
+sp initialized to top of memory: 0x0000fff0
+Loading 'counter/counter.bin' to 0x0
+This is rvddt.  Enter ? for help.
+ddt> ti 0 1000
+00000000: 00300293  addi    x5, x0, 3     # x5 = 0x00000003 = 0x00000000 + 0x00000003
+00000004: 00000313  addi    x6, x0, 0     # x6 = 0x00000000 = 0x00000000 + 0x00000000
+00000008: 00130313  addi    x6, x6, 1     # x6 = 0x00000001 = 0x00000000 + 0x00000001
+0000000c: fe534ee3  blt     x6, x5, -4    # pc = (0x1 < 0x3) ? 0x8 : 0x10
+00000008: 00130313  addi    x6, x6, 1     # x6 = 0x00000002 = 0x00000001 + 0x00000001
+0000000c: fe534ee3  blt     x6, x5, -4    # pc = (0x2 < 0x3) ? 0x8 : 0x10
+00000008: 00130313  addi    x6, x6, 1     # x6 = 0x00000003 = 0x00000002 + 0x00000001
+0000000c: fe534ee3  blt     x6, x5, -4    # pc = (0x3 < 0x3) ? 0x8 : 0x10
+00000010: ebreak
+ddt> x
+winans@ux410:~/projects/riscv/rvddt/examples$
+\end{tty}
+\end{minipage}
+
+
+\section{qemu}
+
+You can download and install the RV32 qemu simulator by executing
+the following commands.
+
+At the time of this writing (2021-06) I use release v5.0.0.
+Release v5.2.0 has issues that confuse GDB when printing the registers
+and v6.0.0 has different CPU types that I have had trouble with when
+executing privileged instructions.
+
+\begin{minipage}{\textwidth}
+\begin{tty}
+INS_DIR=~/projects/riscv/install/rv32i
+cd ~/projects/riscv
+git clone git@github.com:qemu/qemu.git
+cd qemu
+git checkout v5.0.0
+./configure --target-list=riscv32-softmmu --prefix=${INS_DIR}
+make -j4
+make install
+\end{tty}
+\end{minipage}
